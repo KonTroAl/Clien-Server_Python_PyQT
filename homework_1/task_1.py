@@ -9,10 +9,10 @@ import ipaddress
 import subprocess
 
 
-def host_ping():
-    hosts = ['yandex.ru', 'youtube.com', '0.0.0.1']
+def host_ping(hosts):
     for i in hosts:
-        res = subprocess.Popen(['ping', i], stdout=subprocess.PIPE)
+        # ipv4 = ipaddress.ip_address(i)
+        res = subprocess.Popen(['ping', str(i)], stdout=subprocess.PIPE)
         result = res.stdout.read().decode('cp866')
         if '(0% потерь)' in result:
             print('Узел доступен')
@@ -20,4 +20,8 @@ def host_ping():
             print('Узел недоступен')
         # print(result)
 
-host_ping()
+
+hosts = ['yandex.ru', 'youtube.com', '0.0.0.1']
+host_ping(hosts)
+
+# До конца так и не понял последнее условие с созданием ip-адреса сетевого узла через функцию ip_address(). 
