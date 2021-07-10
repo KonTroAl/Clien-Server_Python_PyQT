@@ -3,15 +3,13 @@
 # По результатам проверки должно выводиться соответствующее сообщение
 
 
-hosts = '80.0.1.1'
-
 import ipaddress
 import subprocess
 
 
-def host_range_ping(hos, number):
+def host_range_ping(host, number):
     a = []
-    ipv4 = ipaddress.ip_address(hos)
+    ipv4 = ipaddress.ip_address(host)
     a.append(str(ipv4))
     res = ipv4 + 1
     a.append(str(res))
@@ -30,6 +28,7 @@ def host_range_ping(hos, number):
 
 # val = input('Введите начальный ip-адрес: ')
 # num = input('Введите количество прослушиваемых ip-адресов: ')
+hosts = '80.0.1.1'
 num = 3
 
 host_range_ping(hosts, num)
