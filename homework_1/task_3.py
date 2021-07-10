@@ -7,31 +7,22 @@ import subprocess
 from tabulate import tabulate
 
 
-def host_range_ping_tab(hos, number):
-    a = []
+def host_range_ping_tab(host, number):
     reachable = []
     unreachable = []
     f_dict = {'Reachable': reachable, 'Unreachable': unreachable}
-    ipv4 = ipaddress.ip_address(hos)
-    a.append(str(ipv4))
-    res = ipv4 + 1
-    a.append(str(res))
-    for i in range(number - 2):
-        res = res + 1
-        number = number - 1
-        a.append(str(res))
-    for i in a:
-        response = subprocess.Popen(['ping', str(i)], stdout=subprocess.PIPE)
+    subnet = ipaddress.ip_network(host)
+    subnet_list = list(subnet.hosts())
+    for i in range(number):
+        response = subprocess.Popen(['ping', str(subnet_list[i])], stdout=subprocess.PIPE)
         result = response.stdout.read().decode('cp866')
         if '(0% потерь)' in result:
-            reachable.append(str(i))
+            reachable.append(str(subnet_list[i]))
         else:
-            unreachable.append(str(i))
+            unreachable.append(str(subnet_list[i]))
     print(tabulate(f_dict, headers='keys', tablefmt='pipe'))
 
 
-hosts = '80.0.1.1'
-
+hosts = '80.0.1.0/28'
 num = 3
-
 host_range_ping_tab(hosts, num)
