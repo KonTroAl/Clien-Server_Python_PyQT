@@ -55,16 +55,20 @@ def client_log_dec(func):
 class ClientVerifierMeta(type):
     def __init__(self, *args, **kwargs):
         self.s = socket(AF_INET, SOCK_STREAM)
-        # print(*args)
-        # assert Client.start_connection == self.s.connect(('localhost', 8007)), 'test!'
 
         super(ClientVerifierMeta, self).__init__(*args, **kwargs)
 
     def __call__(self, *args, **kwargs):
-        try:
-            assert Client.start_connection == self.s.connect(('localhost', 8007))
-        except AssertionError as e:
-            print("Для приложения клиента допустимо использовать только метод 'connect()'")
+        bytecode = dis.Bytecode(Client.start_connection)
+        for i in bytecode:
+            if i.opname == 'LOAD_METHOD':
+                if i.argval == 'connect':
+                    print('ok')
+                else:
+                    print('error!')
+
+
+        # super(ClientVerifierMeta, self).__call__(*args, **kwargs)
 
 
 class ClientVerifier(metaclass=ClientVerifierMeta):

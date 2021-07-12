@@ -159,7 +159,15 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
-class Server:
+class ServerVerifierMeta(type):
+    pass
+
+
+class ServerVerifier(metaclass=ServerVerifierMeta):
+    pass
+
+
+class Server(ServerVerifier):
     def __init__(self, s):
         self.s = s
 
