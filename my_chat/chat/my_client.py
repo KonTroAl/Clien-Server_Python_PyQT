@@ -1,4 +1,5 @@
 from socket import socket, AF_INET, SOCK_STREAM
+import dis
 import time
 import pickle
 import logging
@@ -48,6 +49,40 @@ def client_log_dec(func):
         return res
 
     return call
+
+
+# метакласс ClientVerifier
+class ClientVerifierMeta(type):
+    def __init__(self, *args, **kwargs):
+        super(ClientVerifierMeta, self).__init__(*args, **kwargs)
+
+
+class ClientVerifier(metaclass=ClientVerifierMeta):
+    pass
+
+
+class Client(ClientVerifier):
+    def __init__(self, s):
+        self.s = s
+
+    def user_auth(self, username, password):
+        dict_auth = {
+            'action': 'authenticate',
+            'time': timestamp,
+            'user': {
+                'user_name': username,
+                'password': password
+            }
+        }
+        s.send(pickle.dumps(dict_auth))
+        auth_data = s.recv(1024)
+        auth_data_loads = pickle.loads(auth_data)
+        if auth_data_loads['response'] == 200:
+            usernames_auth.append(username)
+        logger.info(auth_data_loads)
+        print('Сообщение от сервера: ', pickle.loads(auth_data), ', длиной ', len(auth_data), ' байт')
+
+        return auth_data_loads
 
 
 # Авторизация пользователя на сервере
@@ -219,7 +254,11 @@ if __name__ == '__main__':
         s = socket(AF_INET, SOCK_STREAM)
         s.connect(('localhost', 8007))
         logger.info('start connection!')
-        main(s)
+        client = Client(s)
+        client.user_auth('test', 'test')
+        # main(s)
+        print(client.__dict__)
+        print(Client.__dict__)
         s.close()
     except Exception as e:
         print(e)
