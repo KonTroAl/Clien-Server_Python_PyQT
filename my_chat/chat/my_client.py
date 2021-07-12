@@ -54,7 +54,17 @@ def client_log_dec(func):
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
     def __init__(self, *args, **kwargs):
+        self.s = socket(AF_INET, SOCK_STREAM)
+        # print(*args)
+        # assert Client.start_connection == self.s.connect(('localhost', 8007)), 'test!'
+
         super(ClientVerifierMeta, self).__init__(*args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        try:
+            assert Client.start_connection == self.s.connect(('localhost', 8007))
+        except AssertionError as e:
+            print("Для приложения клиента допустимо использовать только метод 'connect()'")
 
 
 class ClientVerifier(metaclass=ClientVerifierMeta):
@@ -64,6 +74,9 @@ class ClientVerifier(metaclass=ClientVerifierMeta):
 class Client(ClientVerifier):
     def __init__(self, s):
         self.s = s
+
+    def start_connection(self):
+        return self.s.connect(('localhost', 8007))
 
     def user_auth(self, username, password):
         dict_auth = {
@@ -252,13 +265,12 @@ def main(s):
 if __name__ == '__main__':
     try:
         s = socket(AF_INET, SOCK_STREAM)
-        s.connect(('localhost', 8007))
+        # s.connect(('localhost', 8007))
         logger.info('start connection!')
         client = Client(s)
-        client.user_auth('test', 'test')
+        client.start_connection()
+        # client.user_auth('test', 'test')
         # main(s)
-        print(client.__dict__)
-        print(Client.__dict__)
         s.close()
     except Exception as e:
         print(e)

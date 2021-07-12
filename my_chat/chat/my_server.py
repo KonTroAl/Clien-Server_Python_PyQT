@@ -159,6 +159,32 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
+class Server:
+    def __init__(self, s):
+        self.s = s
+
+    def start_server(self):
+        clients = []
+        while True:
+            try:
+                client, addr = self.s.accept()
+            except OSError as e:
+                pass
+            else:
+                print("Получен запрос на соединение от %s" % str(addr))
+                clients.append(client)
+
+            finally:
+                r = []
+                w = []
+                try:
+                    r, w, e = select.select(clients, clients, [])
+                except:
+                    pass
+
+                requests = read_requests(r, clients)
+
+
 def main():
     s = socket(AF_INET, SOCK_STREAM)
     s.bind(('', 8007))
@@ -206,12 +232,21 @@ def main():
                             sock.send(pickle.dumps({'action': 'quit'}))
                         elif requests[sock]['action'] == 'add_group':
                             room_names.append(requests[sock]['room_name'])
-                            sock.send(pickle.dumps({'response': 200, 'alert': dict_signals[200], 'message': 'add_group'}))
-
+                            sock.send(
+                                pickle.dumps({'response': 200, 'alert': dict_signals[200], 'message': 'add_group'}))
 
 
 if __name__ == '__main__':
     try:
-        main()
+        s = socket(AF_INET, SOCK_STREAM)
+        s.bind(('', 8007))
+        s.listen(5)
+        s.settimeout(0.2)
+        # main()
+        server = Server(s)
+
+        server.start_server()
+        # print(server.start_server().__dict__)
+
     except Exception as e:
         print(e)
