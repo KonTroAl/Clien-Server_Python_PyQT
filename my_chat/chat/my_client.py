@@ -53,9 +53,9 @@ def client_log_dec(func):
 
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
-    def __init__(self, *args, **kwargs):
-        self.s = socket(AF_INET, SOCK_STREAM)
 
+    def __init__(self, *args, **kwargs):
+        print(s)
         super(ClientVerifierMeta, self).__init__(*args, **kwargs)
 
     def __call__(self, *args, **kwargs):
@@ -63,12 +63,9 @@ class ClientVerifierMeta(type):
         for i in bytecode:
             if i.opname == 'LOAD_METHOD':
                 if i.argval == 'connect':
-                    print('ok')
+                    continue
                 else:
                     print('error!')
-
-
-        # super(ClientVerifierMeta, self).__call__(*args, **kwargs)
 
 
 class ClientVerifier(metaclass=ClientVerifierMeta):
@@ -80,7 +77,7 @@ class Client(ClientVerifier):
         self.s = s
 
     def start_connection(self):
-        return self.s.connect(('localhost', 8007))
+        self.s.connect(('localhost', 8007))
 
     def user_auth(self, username, password):
         dict_auth = {
@@ -273,6 +270,7 @@ if __name__ == '__main__':
         logger.info('start connection!')
         client = Client(s)
         client.start_connection()
+        print(client.__dict__)
         # client.user_auth('test', 'test')
         # main(s)
         s.close()
