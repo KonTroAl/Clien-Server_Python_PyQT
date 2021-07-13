@@ -54,10 +54,6 @@ def client_log_dec(func):
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
 
-    def __init__(self, *args, **kwargs):
-        print(s)
-        super(ClientVerifierMeta, self).__init__(*args, **kwargs)
-
     def __call__(self, *args, **kwargs):
         bytecode = dis.Bytecode(Client.start_connection)
         for i in bytecode:
@@ -88,7 +84,7 @@ class Client(ClientVerifier):
                 'password': password
             }
         }
-        s.send(pickle.dumps(dict_auth))
+        self.s.send(pickle.dumps(dict_auth))
         auth_data = s.recv(1024)
         auth_data_loads = pickle.loads(auth_data)
         if auth_data_loads['response'] == 200:
@@ -270,6 +266,7 @@ if __name__ == '__main__':
         logger.info('start connection!')
         client = Client(s)
         client.start_connection()
+        client_verifier = ClientVerifierMeta(Client)
         print(client.__dict__)
         # client.user_auth('test', 'test')
         # main(s)

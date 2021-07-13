@@ -1,4 +1,5 @@
 from socket import socket, AF_INET, SOCK_STREAM
+import dis
 import time
 import pickle
 import logging
@@ -160,7 +161,15 @@ def read_requests(r_clients, all_clients):
 
 
 class ServerVerifierMeta(type):
-    pass
+
+    def __call__(self, *args, **kwargs):
+        bytecode = dis.Bytecode(Server.start_server)
+        for i in bytecode:
+            if i.opname == 'LOAD_METHOD':
+                if i.argval == 'accept' or 'append' or 'select':
+                    continue
+                else:
+                    print('error!')
 
 
 class ServerVerifier(metaclass=ServerVerifierMeta):
