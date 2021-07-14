@@ -54,26 +54,36 @@ def client_log_dec(func):
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
 
-    def __call__(self, *args, **kwargs):
-        bytecode = dis.Bytecode(Client.start_connection)
-        for i in bytecode:
-            if i.opname == 'LOAD_METHOD':
-                if i.argval == 'connect':
-                    continue
-                else:
-                    print('error!')
+    def __init__(self, *args, **kwargs):
+        for key, val in self.__dict__.items():
+            if key == 'start_connection':
+                bytecode = dis.Bytecode(self.__dict__[key])
+                for i in bytecode:
+                    print(i)
+                    if i.opname == 'LOAD_METHOD':
+                        if i.argval == 'connect':
+                            continue
+                        else:
+                            print('error!')
+            # elif key == '__init__':
+            #     bytecode = dis.Bytecode(self.__dict__[key])
+            #     for i in bytecode:
+            #         print(i)
+        super(ClientVerifierMeta, self).__init__(*args, **kwargs)
 
 
 class ClientVerifier(metaclass=ClientVerifierMeta):
-    pass
+    def __init__(self, s):
+        self.s = s
 
 
 class Client(ClientVerifier):
     def __init__(self, s):
         self.s = s
+        super(Client, self).__init__(self)
 
-    def start_connection(self):
-        self.s.connect(('localhost', 8007))
+    def start_connection(self, s):
+        s.connect(('localhost', 7777))
 
     def user_auth(self, username, password):
         dict_auth = {
@@ -261,13 +271,14 @@ def main(s):
 
 if __name__ == '__main__':
     try:
+
         s = socket(AF_INET, SOCK_STREAM)
         # s.connect(('localhost', 8007))
         logger.info('start connection!')
+
         client = Client(s)
-        client.start_connection()
-        client_verifier = ClientVerifierMeta(Client)
-        print(client.__dict__)
+        client.start_connection(s)
+
         # client.user_auth('test', 'test')
         # main(s)
         s.close()

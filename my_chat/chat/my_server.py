@@ -162,18 +162,33 @@ def read_requests(r_clients, all_clients):
 
 class ServerVerifierMeta(type):
 
-    def __call__(self, *args, **kwargs):
-        bytecode = dis.Bytecode(Server.start_server)
-        for i in bytecode:
-            if i.opname == 'LOAD_METHOD':
-                if i.argval == 'accept' or 'append' or 'select':
-                    continue
-                else:
-                    print('error!')
+    def __init__(self, *args, **kwargs):
+        for key, val in self.__dict__.items():
+            if key == 'start_server':
+                bytecode = dis.Bytecode(self.__dict__[key])
+                for i in bytecode:
+                    if i.opname == 'LOAD_METHOD':
+                        if i.argval == 'listen' or 'accept':
+                            continue
+                        else:
+                            print('error!')
+        super(ServerVerifierMeta, self).__init__(*args, **kwargs)
 
 
 class ServerVerifier(metaclass=ServerVerifierMeta):
     pass
+
+
+class PortVerifier:
+    def __init__(self, port):
+        self.port = port
+
+    def __set__(self, instance, value):
+        print(value)
+        if int(self.port) == 7777:
+            setattr(instance, self.port, value)
+        else:
+            print('Wrong port!')
 
 
 class Server(ServerVerifier):
@@ -181,6 +196,11 @@ class Server(ServerVerifier):
         self.s = s
 
     def start_server(self):
+        num_port = 7777
+        port = PortVerifier(num_port)
+        s.bind(('', num_port))
+        s.listen(5)
+        s.settimeout(0.2)
         clients = []
         while True:
             try:
@@ -256,9 +276,7 @@ def main():
 if __name__ == '__main__':
     try:
         s = socket(AF_INET, SOCK_STREAM)
-        s.bind(('', 8007))
-        s.listen(5)
-        s.settimeout(0.2)
+
         # main()
         server = Server(s)
 
