@@ -54,11 +54,10 @@ def client_log_dec(func):
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
 
-    def __init__(self, s, *args, **kwargs):
-
+    def __init__(self, *args, **kwargs):
         for key, val in self.__dict__.items():
             if key == 'start_connection':
-                print(dis.dis(self.__dict__[key]))
+                # print(dis.dis(self.__dict__[key]))
                 bytecode = dis.Bytecode(self.__dict__[key])
                 for i in bytecode:
                     if i.opname == 'LOAD_METHOD':
@@ -66,8 +65,16 @@ class ClientVerifierMeta(type):
                             continue
                         else:
                             print('error!')
+            elif key == 'create_socket':
+                bytecode = dis.Bytecode(self.__dict__[key])
+                for i in bytecode:
+                    if i.opname == 'LOAD_METHOD':
+                        if i.argval == 'AF_INET' or 'SOCK_STREAM':
+                            continue
+                        else:
+                            print('error!')
 
-        super(ClientVerifierMeta, self).__init__(s, *args, **kwargs)
+        super(ClientVerifierMeta, self).__init__(*args, **kwargs)
 
 
 class ClientVerifier(metaclass=ClientVerifierMeta):
@@ -76,13 +83,17 @@ class ClientVerifier(metaclass=ClientVerifierMeta):
 
 
 class Client(ClientVerifier):
-    def __init__(self, s):
-        self.s = s
+    def __init__(self):
+        self.s = None
         super(Client, self).__init__(self)
 
-    def start_connection(self, s):
+    def create_socket(self):
+        self.s = socket(AF_INET, SOCK_STREAM)
+        return self.s
+
+    def start_connection(self, host, port, s):
         self.s = s
-        self.s.connect(('localhost', 7777))
+        s.connect((host, port))
 
     def user_auth(self, username, password):
         dict_auth = {
@@ -94,7 +105,7 @@ class Client(ClientVerifier):
             }
         }
         self.s.send(pickle.dumps(dict_auth))
-        auth_data = s.recv(1024)
+        auth_data = self.s.recv(1024)
         auth_data_loads = pickle.loads(auth_data)
         if auth_data_loads['response'] == 200:
             usernames_auth.append(username)
@@ -270,15 +281,15 @@ def main(s):
 
 if __name__ == '__main__':
     try:
-        a = AF_INET
-        b = SOCK_STREAM
+        HOST = 'localhost'
+        PORT = 7777
 
-        s = socket(a, b)
-        # s.connect(('localhost', 8007))
+        # s = socket(AF_INET, SOCK_STREAM)
         logger.info('start connection!')
 
-        client = Client(s)
-        client.start_connection(s)
+        client = Client()
+        s = client.create_socket()
+        client.start_connection(HOST, PORT, s)
 
         # client.user_auth('test', 'test')
         # main(s)

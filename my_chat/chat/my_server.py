@@ -172,6 +172,14 @@ class ServerVerifierMeta(type):
                             continue
                         else:
                             print('error!')
+            elif key == 'create_socket':
+                bytecode = dis.Bytecode(self.__dict__[key])
+                for i in bytecode:
+                    if i.opname == 'LOAD_METHOD':
+                        if i.argval == 'AF_INET' or 'SOCK_STREAM':
+                            continue
+                        else:
+                            print('error!')
         super(ServerVerifierMeta, self).__init__(*args, **kwargs)
 
 
@@ -194,8 +202,12 @@ class PortVerifier:
 class Server(ServerVerifier):
     port = PortVerifier('port')
 
-    def __init__(self, s):
-        self.s = s
+    def __init__(self):
+        self.s = None
+
+    def create_socket(self):
+        self.s = socket(AF_INET, SOCK_STREAM)
+        return self.s
 
     def start_server(self):
 
@@ -273,14 +285,15 @@ def main():
 
 if __name__ == '__main__':
     try:
-        s = socket(AF_INET, SOCK_STREAM)
-        num_port = 7777
+        # s = socket(AF_INET, SOCK_STREAM)
 
+        # main()
+        server = Server()
+        s = server.create_socket()
+        num_port = 7777
         s.bind(('', int(num_port)))
         s.listen(5)
         s.settimeout(0.2)
-        # main()
-        server = Server(s)
         server.port = num_port
 
         server.start_server()
