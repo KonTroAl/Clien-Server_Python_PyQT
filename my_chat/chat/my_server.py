@@ -180,27 +180,25 @@ class ServerVerifier(metaclass=ServerVerifierMeta):
 
 
 class PortVerifier:
+
     def __init__(self, port):
         self.port = port
 
     def __set__(self, instance, value):
-        print(value)
-        if int(self.port) == 7777:
-            setattr(instance, self.port, value)
-        else:
-            print('Wrong port!')
+        print('start port verification!')
+        if value != 7777:
+            raise ValueError("Wrong port number!")
+        print('verification complete!')
 
 
 class Server(ServerVerifier):
+    port = PortVerifier('port')
+
     def __init__(self, s):
         self.s = s
 
     def start_server(self):
-        num_port = 7777
-        port = PortVerifier(num_port)
-        s.bind(('', num_port))
-        s.listen(5)
-        s.settimeout(0.2)
+
         clients = []
         while True:
             try:
@@ -276,12 +274,15 @@ def main():
 if __name__ == '__main__':
     try:
         s = socket(AF_INET, SOCK_STREAM)
+        num_port = 7777
 
+        s.bind(('', int(num_port)))
+        s.listen(5)
+        s.settimeout(0.2)
         # main()
         server = Server(s)
+        server.port = num_port
 
         server.start_server()
-        # print(server.start_server().__dict__)
-
     except Exception as e:
         print(e)

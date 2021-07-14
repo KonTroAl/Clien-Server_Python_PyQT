@@ -54,22 +54,20 @@ def client_log_dec(func):
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, s, *args, **kwargs):
+
         for key, val in self.__dict__.items():
             if key == 'start_connection':
+                print(dis.dis(self.__dict__[key]))
                 bytecode = dis.Bytecode(self.__dict__[key])
                 for i in bytecode:
-                    print(i)
                     if i.opname == 'LOAD_METHOD':
                         if i.argval == 'connect':
                             continue
                         else:
                             print('error!')
-            # elif key == '__init__':
-            #     bytecode = dis.Bytecode(self.__dict__[key])
-            #     for i in bytecode:
-            #         print(i)
-        super(ClientVerifierMeta, self).__init__(*args, **kwargs)
+
+        super(ClientVerifierMeta, self).__init__(s, *args, **kwargs)
 
 
 class ClientVerifier(metaclass=ClientVerifierMeta):
@@ -83,7 +81,8 @@ class Client(ClientVerifier):
         super(Client, self).__init__(self)
 
     def start_connection(self, s):
-        s.connect(('localhost', 7777))
+        self.s = s
+        self.s.connect(('localhost', 7777))
 
     def user_auth(self, username, password):
         dict_auth = {
@@ -271,8 +270,10 @@ def main(s):
 
 if __name__ == '__main__':
     try:
+        a = AF_INET
+        b = SOCK_STREAM
 
-        s = socket(AF_INET, SOCK_STREAM)
+        s = socket(a, b)
         # s.connect(('localhost', 8007))
         logger.info('start connection!')
 
