@@ -7,7 +7,7 @@ from functools import wraps
 import datetime
 import select
 
-from sqlalchemy.orm import mapper
+from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
 
 logger = logging.getLogger('my_server')
@@ -165,19 +165,21 @@ def read_requests(r_clients, all_clients):
 
 engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
 metadata = MetaData()
-client_table = Table('client', metadata,
-                     Column('id', Integer, primary_key=True),
-                     Column('user_name', String),
-                     Column('info', Text)
-                     )
+clients_table = Table('clients', metadata,
+                      Column('id', Integer, primary_key=True),
+                      Column('user_name', String),
+                      Column('info', Text)
+                      )
 client_history_table = Table('client_history', metadata,
                              Column('login_time', Time),
-                             Column('ip-address', Integer)
+                             Column('ip_address', Integer, primary_key=True)
                              )
 client_contacts_table = Table('client_contacts', metadata,
-                              Column('id_owner', Integer),
+                              Column('id_owner', Integer, primary_key=True),
                               Column('id_client', Integer)
                               )
+
+metadata.create_all(engine)
 
 
 class Storage:
@@ -193,11 +195,45 @@ class Client:
         return "<Client('%s', '%s')>" % (self.user_name, self.info)
 
 
-mapper(Client, client_table)
+class ClientHistory:
+    def __init__(self, login_time, ip_address):
+        self.login_time = login_time
+        self.ip_address = ip_address
+
+    def __repr__(self):
+        return "<ClientHistory('%s', '%s')>" % (self.login_time, self.ip_address)
+
+
+class ClientContacts:
+    def __init__(self, id_owner, id_client):
+        self.id_owner = id_owner
+        self.id_client = id_client
+
+    def __repr__(self):
+        return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+
+
+m = mapper(Client, clients_table)
+mapper(ClientHistory, client_history_table)
+mapper(ClientContacts, client_contacts_table)
 client = Client('test', 'test of creation table')
+client_history = ClientHistory('14:13 15.07.2021', '127.0.0.1')
+client_contacts = ClientContacts('1', '2')
 print(client)
+print(client_history)
+print(client_contacts)
+
+Session = sessionmaker()
+Session.configure(bind=engine)
+session = Session()
+session.add(client)
+
+session.commit()
+print(m)
+print(client.id)
 
 
+# print(client.id)
 
 
 class ServerVerifierMeta(type):
