@@ -7,7 +7,7 @@ from functools import wraps
 import datetime
 import select
 
-import sqlalchemy
+from sqlalchemy.orm import mapper
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
 
 logger = logging.getLogger('my_server')
@@ -179,8 +179,25 @@ client_contacts_table = Table('client_contacts', metadata,
                               Column('id_client', Integer)
                               )
 
+
 class Storage:
     pass
+
+
+class Client:
+    def __init__(self, user_name, info):
+        self.user_name = user_name
+        self.info = info
+
+    def __repr__(self):
+        return "<Client('%s', '%s')>" % (self.user_name, self.info)
+
+
+mapper(Client, client_table)
+client = Client('test', 'test of creation table')
+print(client)
+
+
 
 
 class ServerVerifierMeta(type):
