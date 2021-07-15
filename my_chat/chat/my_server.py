@@ -6,6 +6,7 @@ import logging
 from functools import wraps
 import datetime
 import select
+import sqlalchemy
 
 logger = logging.getLogger('my_server')
 
@@ -159,6 +160,9 @@ def read_requests(r_clients, all_clients):
 
     return responses
 
+
+class Storage:
+    pass
 
 class ServerVerifierMeta(type):
 

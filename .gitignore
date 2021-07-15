@@ -2,4 +2,5 @@ my_chat/.idea
 __pycache__/
 my_chat/chat/my_server_2.py
 task.txt
+virtual_env/
 
