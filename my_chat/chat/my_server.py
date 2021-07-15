@@ -6,7 +6,9 @@ import logging
 from functools import wraps
 import datetime
 import select
+
 import sqlalchemy
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
 
 logger = logging.getLogger('my_server')
 
@@ -161,8 +163,25 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
+engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
+metadata = MetaData()
+client_table = Table('client', metadata,
+                     Column('id', Integer, primary_key=True),
+                     Column('user_name', String),
+                     Column('info', Text)
+                     )
+client_history_table = Table('client_history', metadata,
+                             Column('login_time', Time),
+                             Column('ip-address', Integer)
+                             )
+client_contacts_table = Table('client_contacts', metadata,
+                              Column('id_owner', Integer),
+                              Column('id_client', Integer)
+                              )
+
 class Storage:
     pass
+
 
 class ServerVerifierMeta(type):
 
