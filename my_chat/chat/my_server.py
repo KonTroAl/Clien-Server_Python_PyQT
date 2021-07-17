@@ -223,14 +223,14 @@ print(client)
 print(client_history)
 print(client_contacts)
 
-Session = sessionmaker()
-Session.configure(bind=engine)
-session = Session()
-session.add(client)
-
-session.commit()
-print(m)
-print(client.id)
+# Session = sessionmaker()
+# Session.configure(bind=engine)
+# session = Session()
+# session.add(client)
+#
+# # session.commit()
+# # print(m)
+# # print(client.id)
 
 
 # print(client.id)

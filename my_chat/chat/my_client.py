@@ -7,7 +7,6 @@ from functools import wraps
 import datetime
 from threading import Thread
 
-
 logger = logging.getLogger('my_client')
 
 users = {
@@ -38,7 +37,7 @@ dict_signals = {
 }
 
 test = True
-timestamp = int(time.time())
+timestamp = datetime.datetime.now()
 
 
 # декоратор
@@ -114,6 +113,63 @@ class Client(ClientVerifier):
         print('Сообщение от сервера: ', pickle.loads(auth_data), ', длиной ', len(auth_data), ' байт')
 
         return auth_data_loads
+
+    def user_presence(self):
+        logger.info('start user_presence!')
+        pre_data = self.s.recv(1024)
+        pre_data_load = pickle.loads(pre_data)
+        if pre_data_load['action'] == 'probe':
+            presence_dict = {
+                'action': 'presence',
+                'time': timestamp,
+                'type': 'status',
+                'user': {
+                    'username': usernames_auth[0],
+                    'status': 'I am still here!'
+                }
+            }
+            self.s.send(pickle.dumps(presence_dict))
+            return presence_dict
+        else:
+            return 'error!'
+
+    def message_send_user(self, message, to):
+        logger.info('start message_to_user!')
+        message_dict = {
+            'action': 'msg',
+            'time': timestamp,
+            'to': to,
+            'from': usernames_auth[0],
+            'encoding': 'utf-8',
+            'message': message
+        }
+        self.s.send(pickle.dumps(message_dict))
+
+    def message_recv(self):
+        while True:
+            message_data = self.s.recv(1024)
+            message_data_load = pickle.loads(message_data)
+            if message_data_load['message'] == 'Q':
+                break
+            elif message_data_load['message'] == 'add_group':
+                print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
+                # return ''
+            else:
+                if message_data_load['to'][0].isalpha():
+                    print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
+                else:
+                    print(
+                        f'{message_data_load["to"]} from {message_data_load["from"]}: {message_data_load["message"]}')
+            logger.info(message_data_load)
+
+    def logout(self):
+        logout_dict = {
+            'action': 'logout',
+            'time': timestamp,
+            'from': usernames_auth[0]
+        }
+        self.s.send(pickle.dumps(logout_dict))
+        return logout_dict
 
 
 # Авторизация пользователя на сервере
@@ -218,7 +274,16 @@ def logout(s):
     return logout_dict
 
 
-def main(s):
+def main():
+    HOST = 'localhost'
+    PORT = 7777
+
+    logger.info('start connection!')
+
+    client = Client()
+    s = client.create_socket()
+    client.start_connection(HOST, PORT, s)
+
     while True:
         start = input('Добро пожаловать! Хотите авторизоваться? (Y / N): ')
         if start.upper() == 'Y':
@@ -232,10 +297,10 @@ def main(s):
                 }
                 print(auth_dict)
             else:
-                if user_authenticate(s, username, password)['response'] == 402:
+                if client.user_auth(username, password)['response'] == 402:
                     break
 
-            user_presence(s)
+            client.user_presence()
 
             msg = Thread(target=message_recv, args=(s,))
             msg.start()
@@ -254,12 +319,12 @@ def main(s):
                 elif user_choice.upper() == 'П':
                     to = input('Кому отправить сообщение: ')
                     message = input('Enter message: ')
-                    message_send_user(s, to, message)
+                    client.message_send_user(to, message)
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'Г':
                     to = input('Кому отправить сообщение: ')
                     message = input('Enter message: ')
-                    message_send_room(s, to, message)
+                    client.message_send_user(to, message)
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'Q':
                     message_dict = {
@@ -270,7 +335,7 @@ def main(s):
                     break
             msg.join(timeout=1)
 
-            logout(s)
+            client.logout()
             quit_data = s.recv(1024)
             logger.info(pickle.loads(quit_data))
             usernames_auth.clear()
@@ -278,22 +343,11 @@ def main(s):
         else:
             print('До свидания!')
             break
+    s.close()
 
 
 if __name__ == '__main__':
     try:
-        HOST = 'localhost'
-        PORT = 7777
-
-        # s = socket(AF_INET, SOCK_STREAM)
-        logger.info('start connection!')
-
-        client = Client()
-        s = client.create_socket()
-        client.start_connection(HOST, PORT, s)
-
-        # client.user_auth('test', 'test')
-        # main(s)
-        s.close()
+        main()
     except Exception as e:
         print(e)
