@@ -21,7 +21,7 @@ users = {
     'Julia': 'SpaceShuttle007'
 }
 
-users_conatacts = ['KonTroAll', 'test2', 'Julia', 'test']
+users_contacts = ['KonTroAll', 'test2', 'Julia', 'test']
 usernames_auth = []
 room_names = ['#smalltalk']
 
@@ -338,7 +338,7 @@ class Server(ServerVerifier):
             'time': timestamp
         }
         if list(my_dict['to'])[0].isalpha():
-            for i in usernames_friends:
+            for i in users_contacts:
                 if my_dict['to'] == i:
                     msg_dict['response'] = 200
                     msg_dict['alert'] = dict_signals[msg_dict['response']]
@@ -380,6 +380,15 @@ class Server(ServerVerifier):
             val.send(pickle.dumps(my_dict))
         print('message send!')
         logger.info('message send!')
+
+    def get_contacts(self, my_dict, sock):
+        contacts_dict = {
+            'response': 200,
+            'alert': users_contacts,
+            'message': 'get_contacts'
+        }
+        sock.send(pickle.dumps(contacts_dict))
+
 
     def read_requests(self, r_clients, all_clients):
         """ Чтение запросов из списка клиентов
@@ -449,6 +458,8 @@ def main():
                         elif requests[sock]['action'] == 'logout':
                             usernames_auth.remove(requests[sock]['from'])
                             sock.send(pickle.dumps({'action': 'quit'}))
+                        elif requests[sock]['action'] == 'get_contacts':
+                            server.get_contacts(requests[sock], sock)
                         elif requests[sock]['action'] == 'add_group':
                             room_names.append(requests[sock]['room_name'])
                             sock.send(

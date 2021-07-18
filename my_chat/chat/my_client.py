@@ -18,7 +18,7 @@ users = {
 
 usernames_auth = []
 room_names = ['#smalltalk']
-users_conatacts = ['KonTroAll', 'test2', 'Julia', 'test']
+users_contacts = ['KonTroAll', 'test2', 'Julia', 'test']
 
 dict_signals = {
     100: 'welcome!',
@@ -108,7 +108,6 @@ class Client(ClientVerifier):
         self.s.send(pickle.dumps(dict_auth))
         auth_data = self.s.recv(1024)
         auth_data_loads = pickle.loads(auth_data)
-        print(auth_data_loads)
         if auth_data_loads['response'] == 200:
             usernames_auth.append(username)
         logger.info(auth_data_loads)
@@ -147,22 +146,16 @@ class Client(ClientVerifier):
         }
         self.s.send(pickle.dumps(message_dict))
 
-    def message_recv(self):
-        while True:
-            message_data = self.s.recv(1024)
-            message_data_load = pickle.loads(message_data)
-            if message_data_load['message'] == 'Q':
-                break
-            elif message_data_load['message'] == 'add_group':
-                print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
-                # return ''
-            else:
-                if message_data_load['to'][0].isalpha():
-                    print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
-                else:
-                    print(
-                        f'{message_data_load["to"]} from {message_data_load["from"]}: {message_data_load["message"]}')
-            logger.info(message_data_load)
+    def get_contacts(self, username):
+        contacts_dict = {
+            "action": "get_contacts",
+            "time": str(timestamp),
+            "user_login": username
+        }
+        self.s.send(pickle.dumps(contacts_dict))
+
+    def add_contacts(self, username):
+        pass
 
     def logout(self):
         logout_dict = {
@@ -254,6 +247,8 @@ def message_recv(s):
         message_data_load = pickle.loads(message_data)
         if message_data_load['message'] == 'Q':
             break
+        elif message_data_load['message'] == 'get_contacts':
+            print(f"Ваш список контактов: , {message_data_load['alert']}")
         elif message_data_load['message'] == 'add_group':
             print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
         else:
@@ -303,7 +298,7 @@ def main():
             msg.start()
             while True:
                 user_choice = input(
-                    "Введите, что вы хотите сделать (П/Отправить сообщение пользователю, Г/Отправить группе, ВГ/Вступить в группу). Чтобы выйти введите: 'Q': ")
+                    "Введите, что вы хотите сделать (К/Показать список контактов, П/Отправить сообщение пользователю, Г/Отправить группе, ВГ/Вступить в группу). Чтобы выйти введите: 'Q': ")
 
                 if user_choice.upper() == 'ВГ':
                     to = input('Введите имя группы (Ввод должен начинаться с #, Пример:#5556): ')
@@ -322,6 +317,9 @@ def main():
                     to = input('Кому отправить сообщение: ')
                     message = input('Enter message: ')
                     client.message_send_user(message, to)
+                    msg.join(timeout=1)
+                elif user_choice.upper() == 'К':
+                    client.get_contacts(username)
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'Q':
                     message_dict = {
