@@ -7,7 +7,7 @@ from functools import wraps
 import datetime
 import select
 
-from sqlalchemy.orm import mapper, sessionmaker
+from sqlalchemy.orm import mapper, sessionmaker, declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
 
 logger = logging.getLogger('my_server')
@@ -18,6 +18,7 @@ users = {
     'KonTroAll': 'SpaceShip007',
     'test': 'test',
     'test2': 'test2',
+    'test3': 'test3',
     'Julia': 'SpaceShuttle007'
 }
 
@@ -101,7 +102,7 @@ def message_send(my_dict, sock):
         'time': timestamp
     }
     if list(my_dict['to'])[0].isalpha():
-        for i in usernames_friends:
+        for i in users_contacts:
             if my_dict['to'] == i:
                 msg_dict['response'] = 200
                 msg_dict['alert'] = dict_signals[msg_dict['response']]
@@ -163,78 +164,66 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
-# engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
-# metadata = MetaData()
-# clients_table = Table('clients', metadata,
-#                       Column('id', Integer, primary_key=True),
-#                       Column('user_name', String),
-#                       Column('info', Text)
-#                       )
-# client_history_table = Table('client_history', metadata,
-#                              Column('login_time', Time),
-#                              Column('ip_address', Integer, primary_key=True)
-#                              )
-# client_contacts_table = Table('client_contacts', metadata,
-#                               Column('id_owner', Integer, primary_key=True),
-#                               Column('id_client', Integer)
-#                               )
-#
-# metadata.create_all(engine)
-#
-#
-# class Storage:
-#     pass
-#
-#
-# class Client:
-#     def __init__(self, user_name, info):
-#         self.user_name = user_name
-#         self.info = info
-#
-#     def __repr__(self):
-#         return "<Client('%s', '%s')>" % (self.user_name, self.info)
-#
-#
-# class ClientHistory:
-#     def __init__(self, login_time, ip_address):
-#         self.login_time = login_time
-#         self.ip_address = ip_address
-#
-#     def __repr__(self):
-#         return "<ClientHistory('%s', '%s')>" % (self.login_time, self.ip_address)
-#
-#
-# class ClientContacts:
-#     def __init__(self, id_owner, id_client):
-#         self.id_owner = id_owner
-#         self.id_client = id_client
-#
-#     def __repr__(self):
-#         return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine)
+
+Base = declarative_base()
+metadata = Base.metadata
 
 
-# m = mapper(Client, clients_table)
-# mapper(ClientHistory, client_history_table)
-# mapper(ClientContacts, client_contacts_table)
-# client = Client('test', 'test of creation table')
-# client_history = ClientHistory('14:13 15.07.2021', '127.0.0.1')
-# client_contacts = ClientContacts('1', '2')
-# print(client)
-# print(client_history)
-# print(client_contacts)
+class Client(Base):
+    __tablename__ = 'clients'
+    id = Column(Integer, primary_key=True)
+    user_name = Column(String)
+    password = Column(String)
+    info = Column(Text)
+
+    def __init__(self, user_name, password, info):
+        self.user_name = user_name
+        self.password = password
+        self.info = info
+
+    def __repr__(self):
+        return "<Client('%s', '%s')>" % (self.user_name, self.info)
 
 
-# Session = sessionmaker()
-# Session.configure(bind=engine)
-# session = Session()
-# session.add(client)
-#
-# # session.commit()
-# # print(m)
-# # print(client.id)
+class ClientHistory(Base):
+    __tablename__ = 'client_history'
+    login_time = Column(Time)
+    ip_address = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
+
+    def __init__(self, login_time, ip_address, user_id):
+        self.login_time = login_time
+        self.ip_address = ip_address
+        self.user_id = user_id
+
+    def __repr__(self):
+        return "<ClientHistory('%s', '%s', '%s')>" % (self.login_time, self.ip_address, self.user_id)
 
 
-# print(client.id)
+class ClientContacts(Base):
+    __tablename__ = 'client_contacts'
+    id_owner = Column(Integer, ForeignKey('clients.id'), primary_key=True)
+    id_client = Column(Integer, ForeignKey('clients.id'))
+
+    def __init__(self, id_owner, id_client):
+        self.id_owner = id_owner
+        self.id_client = id_client
+
+    def __repr__(self):
+        return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+
+
+metadata.create_all(engine)
+
+session = Session()
+
+admin_user = Client('test', 'test', 'admin')
+session.add(admin_user)
+q_user = session.query(Client).filter_by(user_name='test').first()
+print(q_user)
 
 
 class ServerVerifierMeta(type):
@@ -389,6 +378,14 @@ class Server(ServerVerifier):
         }
         sock.send(pickle.dumps(contacts_dict))
 
+    def add_contacts(self, my_dict, sock):
+        users_contacts.append(my_dict['new_contact'])
+        contacts_dict = {
+            'response': 200,
+            'alert': dict_signals[200],
+            'message': 'add_contact'
+        }
+        sock.send(pickle.dumps(contacts_dict))
 
     def read_requests(self, r_clients, all_clients):
         """ Чтение запросов из списка клиентов
@@ -442,7 +439,6 @@ def main():
                     if sock in requests:
                         if requests[sock]['action'] == 'authenticate':
                             auth = server.user_authenticate(requests[sock], sock)['response']
-                            # server.user_authenticate_response(requests[sock])
                             if auth == 402:
                                 usernames_auth.remove(requests[sock]['user']['user_name'])
                                 break
@@ -460,6 +456,8 @@ def main():
                             sock.send(pickle.dumps({'action': 'quit'}))
                         elif requests[sock]['action'] == 'get_contacts':
                             server.get_contacts(requests[sock], sock)
+                        elif requests[sock]['action'] == 'add_contact':
+                            server.add_contacts(requests[sock], sock)
                         elif requests[sock]['action'] == 'add_group':
                             room_names.append(requests[sock]['room_name'])
                             sock.send(

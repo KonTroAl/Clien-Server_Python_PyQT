@@ -13,6 +13,7 @@ users = {
     'KonTroAll': 'SpaceShip007',
     'test': 'test',
     'test2': 'test2',
+    'test3': 'test3',
     'Julia': 'SpaceShuttle007'
 }
 
@@ -150,12 +151,18 @@ class Client(ClientVerifier):
         contacts_dict = {
             "action": "get_contacts",
             "time": str(timestamp),
-            "user_login": username
+            "user_name": username
         }
         self.s.send(pickle.dumps(contacts_dict))
 
-    def add_contacts(self, username):
-        pass
+    def add_contacts(self, username, new_contact):
+        new_contact_dict = {
+            'action': 'add_contact',
+            'new_contact': new_contact,
+            'time': str(timestamp),
+            'user_name': username
+        }
+        self.s.send(pickle.dumps(new_contact_dict))
 
     def logout(self):
         logout_dict = {
@@ -168,77 +175,77 @@ class Client(ClientVerifier):
 
 
 # Авторизация пользователя на сервере
-@client_log_dec
-def user_authenticate(s, username, password):
-    logger.info('start user_authenticate!')
-    dict_auth = {
-        'action': 'authenticate',
-        'time': timestamp,
-        'user': {
-            'user_name': username,
-            'password': password
-        }
-    }
-    s.send(pickle.dumps(dict_auth))
-    auth_data = s.recv(1024)
-    auth_data_loads = pickle.loads(auth_data)
-    if auth_data_loads['response'] == 200:
-        usernames_auth.append(username)
-    logger.info(auth_data_loads)
-    print('Сообщение от сервера: ', pickle.loads(auth_data), ', длиной ', len(auth_data), ' байт')
-
-    return auth_data_loads
-
-
-# Проверка присутствия пользователя
-@client_log_dec
-def user_presence(s):
-    logger.info('start user_presence!')
-    pre_data = s.recv(1024)
-    pre_data_load = pickle.loads(pre_data)
-    if pre_data_load['action'] == 'probe':
-        presence_dict = {
-            'action': 'presence',
-            'time': timestamp,
-            'type': 'status',
-            'user': {
-                'username': usernames_auth[0],
-                'status': 'I am still here!'
-            }
-        }
-        s.send(pickle.dumps(presence_dict))
-        return presence_dict
-    else:
-        return 'error!'
-
-
-# Отправка сообщения другому пользователю
-@client_log_dec
-def message_send_user(s, to, message):
-    logger.info('start message_to_user!')
-    message_dict = {
-        'action': 'msg',
-        'time': str(timestamp),
-        'to': to,
-        'from': usernames_auth[0],
-        'encoding': 'utf-8',
-        'message': message
-    }
-    s.send(pickle.dumps(message_dict))
-
-
-@client_log_dec
-def message_send_room(s, to, message):
-    logger.info('start message_to_user!')
-    message_dict = {
-        'action': 'msg',
-        'time': timestamp,
-        'to': to,
-        'from': usernames_auth[0],
-        'encoding': 'utf-8',
-        'message': message,
-    }
-    s.send(pickle.dumps(message_dict))
+# @client_log_dec
+# def user_authenticate(s, username, password):
+#     logger.info('start user_authenticate!')
+#     dict_auth = {
+#         'action': 'authenticate',
+#         'time': timestamp,
+#         'user': {
+#             'user_name': username,
+#             'password': password
+#         }
+#     }
+#     s.send(pickle.dumps(dict_auth))
+#     auth_data = s.recv(1024)
+#     auth_data_loads = pickle.loads(auth_data)
+#     if auth_data_loads['response'] == 200:
+#         usernames_auth.append(username)
+#     logger.info(auth_data_loads)
+#     print('Сообщение от сервера: ', pickle.loads(auth_data), ', длиной ', len(auth_data), ' байт')
+#
+#     return auth_data_loads
+#
+#
+# # Проверка присутствия пользователя
+# @client_log_dec
+# def user_presence(s):
+#     logger.info('start user_presence!')
+#     pre_data = s.recv(1024)
+#     pre_data_load = pickle.loads(pre_data)
+#     if pre_data_load['action'] == 'probe':
+#         presence_dict = {
+#             'action': 'presence',
+#             'time': timestamp,
+#             'type': 'status',
+#             'user': {
+#                 'username': usernames_auth[0],
+#                 'status': 'I am still here!'
+#             }
+#         }
+#         s.send(pickle.dumps(presence_dict))
+#         return presence_dict
+#     else:
+#         return 'error!'
+#
+#
+# # Отправка сообщения другому пользователю
+# @client_log_dec
+# def message_send_user(s, to, message):
+#     logger.info('start message_to_user!')
+#     message_dict = {
+#         'action': 'msg',
+#         'time': str(timestamp),
+#         'to': to,
+#         'from': usernames_auth[0],
+#         'encoding': 'utf-8',
+#         'message': message
+#     }
+#     s.send(pickle.dumps(message_dict))
+#
+#
+# @client_log_dec
+# def message_send_room(s, to, message):
+#     logger.info('start message_to_user!')
+#     message_dict = {
+#         'action': 'msg',
+#         'time': timestamp,
+#         'to': to,
+#         'from': usernames_auth[0],
+#         'encoding': 'utf-8',
+#         'message': message,
+#     }
+#     s.send(pickle.dumps(message_dict))
 
 
 def message_recv(s):
@@ -249,6 +256,8 @@ def message_recv(s):
             break
         elif message_data_load['message'] == 'get_contacts':
             print(f"Ваш список контактов: , {message_data_load['alert']}")
+        elif message_data_load['message'] == 'add_contact':
+            print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
         elif message_data_load['message'] == 'add_group':
             print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
         else:
@@ -298,7 +307,7 @@ def main():
             msg.start()
             while True:
                 user_choice = input(
-                    "Введите, что вы хотите сделать (К/Показать список контактов, П/Отправить сообщение пользователю, Г/Отправить группе, ВГ/Вступить в группу). Чтобы выйти введите: 'Q': ")
+                    "Введите, что вы хотите сделать (К/Показать список контактов, ДК/Добавить новый контакт, П/Отправить сообщение пользователю, Г/Отправить группе, ВГ/Вступить в группу). Чтобы выйти введите: 'Q': ")
 
                 if user_choice.upper() == 'ВГ':
                     to = input('Введите имя группы (Ввод должен начинаться с #, Пример:#5556): ')
@@ -320,6 +329,14 @@ def main():
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'К':
                     client.get_contacts(username)
+                    msg.join(timeout=1)
+                elif user_choice.upper() == 'ДК':
+                    new_contact = input('Введите имя контакта: ')
+                    if new_contact in users.keys():
+                        users_contacts.append(new_contact)
+                    else:
+                        print('Пользователь не найден!')
+                    client.add_contacts(username, new_contact)
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'Q':
                     message_dict = {

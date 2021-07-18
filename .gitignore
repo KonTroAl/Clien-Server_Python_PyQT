@@ -3,4 +3,6 @@ __pycache__/
 my_chat/chat/my_server_2.py
 task.txt
 virtual_env/
+my_chat/chat/sqlite3.db
+my_chat/chat/sqlite3.db-journal
 
