@@ -107,6 +107,7 @@ class Client(ClientVerifier):
         self.s.send(pickle.dumps(dict_auth))
         auth_data = self.s.recv(1024)
         auth_data_loads = pickle.loads(auth_data)
+        print(auth_data_loads)
         if auth_data_loads['response'] == 200:
             usernames_auth.append(username)
         logger.info(auth_data_loads)
@@ -223,7 +224,7 @@ def message_send_user(s, to, message):
     logger.info('start message_to_user!')
     message_dict = {
         'action': 'msg',
-        'time': timestamp,
+        'time': str(timestamp),
         'to': to,
         'from': usernames_auth[0],
         'encoding': 'utf-8',
@@ -254,13 +255,8 @@ def message_recv(s):
             break
         elif message_data_load['message'] == 'add_group':
             print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
-            # return ''
         else:
-            if message_data_load['to'][0].isalpha():
-                print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
-            else:
-                print(
-                    f'{message_data_load["to"]} from {message_data_load["from"]}: {message_data_load["message"]}')
+            print(f'{message_data_load["to"]} from {message_data_load["from"]}: {message_data_load["message"]}')
         logger.info(message_data_load)
 
 
@@ -296,9 +292,9 @@ def main():
                     'message': dict_signals[409]
                 }
                 print(auth_dict)
-            else:
-                if client.user_auth(username, password)['response'] == 402:
-                    break
+            # client.user_auth(username, password)
+            if client.user_auth(username, password)['response'] == 402:
+                break
 
             client.user_presence()
 
@@ -319,12 +315,12 @@ def main():
                 elif user_choice.upper() == 'П':
                     to = input('Кому отправить сообщение: ')
                     message = input('Enter message: ')
-                    client.message_send_user(to, message)
+                    client.message_send_user(message, to)
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'Г':
                     to = input('Кому отправить сообщение: ')
                     message = input('Enter message: ')
-                    client.message_send_user(to, message)
+                    client.message_send_user(message, to)
                     msg.join(timeout=1)
                 elif user_choice.upper() == 'Q':
                     message_dict = {
