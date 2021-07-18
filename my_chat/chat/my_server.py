@@ -21,7 +21,7 @@ users = {
     'Julia': 'SpaceShuttle007'
 }
 
-usernames_friends = ['Julia', 'test']
+users_conatacts = ['KonTroAll', 'test2', 'Julia', 'test']
 usernames_auth = []
 room_names = ['#smalltalk']
 

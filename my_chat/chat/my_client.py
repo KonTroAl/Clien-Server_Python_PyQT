@@ -18,6 +18,7 @@ users = {
 
 usernames_auth = []
 room_names = ['#smalltalk']
+users_conatacts = ['KonTroAll', 'test2', 'Julia', 'test']
 
 dict_signals = {
     100: 'welcome!',
