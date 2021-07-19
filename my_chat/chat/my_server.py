@@ -7,7 +7,8 @@ from functools import wraps
 import datetime
 import select
 
-from sqlalchemy.orm import mapper, sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
 
 logger = logging.getLogger('my_server')
@@ -222,6 +223,7 @@ session = Session()
 
 admin_user = Client('test', 'test', 'admin')
 session.add(admin_user)
+session.commit()
 q_user = session.query(Client).filter_by(user_name='test').first()
 print(q_user)
 

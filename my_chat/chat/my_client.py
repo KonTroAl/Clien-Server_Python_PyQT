@@ -6,6 +6,9 @@ import logging
 from functools import wraps
 import datetime
 from threading import Thread
+from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
 
 logger = logging.getLogger('my_client')
 
@@ -40,6 +43,46 @@ dict_signals = {
 
 test = True
 timestamp = datetime.datetime.now()
+engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
+Session = sessionmaker(bind=engine)
+Session.configure(bind=engine)
+
+Base = declarative_base()
+metadata = Base.metadata
+
+
+class ClientContacts(Base):
+    __tablename__ = 'client_contacts'
+    id_owner = Column(Integer, ForeignKey('clients.id'), primary_key=True)
+    id_client = Column(Integer, ForeignKey('clients.id'))
+
+    def __init__(self, id_owner, id_client):
+        self.id_owner = id_owner
+        self.id_client = id_client
+
+    def __repr__(self):
+        return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+
+
+class ClientMessageHistory(Base):
+    __tablename__ = 'client_message_history'
+
+    user_id = Column(Integer, ForeignKey('clients.id'), primary_key=True)
+    recipient_id = Column(Integer, ForeignKey('clients.id'))
+    user_message = Column(Text)
+    recipient_message = Column(Text)
+
+    def __init__(self, user_id, recipient_id, user_message, recipient_message):
+        self.user_id = user_id
+        self.recipient_id = recipient_id
+        self.user_message = user_message
+        self.recipient_message = recipient_message
+
+    def __repr__(self):
+        return "From '%s': '%s' | From '%s': '%s' " % (self.user_id, self.user_message, self.recipient_id, self.recipient_message)
+
+
+metadata.create_all(engine)
 
 
 # декоратор
