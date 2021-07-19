@@ -173,7 +173,7 @@ Base = declarative_base()
 metadata = Base.metadata
 
 
-class Client(Base):
+class Clients(Base):
     __tablename__ = 'clients'
     id = Column(Integer, primary_key=True)
     user_name = Column(String)
@@ -221,10 +221,10 @@ metadata.create_all(engine)
 
 session = Session()
 
-admin_user = Client('test', 'test', 'admin')
+admin_user = Clients('test', 'test', 'admin')
 session.add(admin_user)
 session.commit()
-q_user = session.query(Client).filter_by(user_name='test').first()
+q_user = session.query(Clients).filter_by(user_name='test').first()
 print(q_user)
 
 
