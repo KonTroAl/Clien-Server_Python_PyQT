@@ -6,6 +6,7 @@ import logging
 from functools import wraps
 import datetime
 from threading import Thread
+import inspect
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
@@ -80,7 +81,7 @@ class ClientMessageHistory(Base):
 
     def __repr__(self):
         return "From '%s': '%s' | From '%s': '%s' " % (
-        self.user_id, self.user_message, self.recipient_id, self.recipient_message)
+            self.user_id, self.user_message, self.recipient_id, self.recipient_message)
 
 
 metadata.create_all(engine)
@@ -98,41 +99,31 @@ def client_log_dec(func):
     return call
 
 
+def find_forbidden_methods_call(func, method_names):
+    for instr in dis.get_instructions(func):
+        if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
+            return instr.argval
+
+
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
+    forbidden_method_names = ('accept', 'listen', 'SOCK_DGRAM')
 
-    def __init__(self, *args, **kwargs):
-        for key, val in self.__dict__.items():
-            if key == 'start_connection':
-                # print(dis.dis(self.__dict__[key]))
-                bytecode = dis.Bytecode(self.__dict__[key])
-                for i in bytecode:
-                    if i.opname == 'LOAD_METHOD':
-                        if i.argval == 'connect':
-                            continue
-                        else:
-                            print('error!')
-            elif key == 'create_socket':
-                bytecode = dis.Bytecode(self.__dict__[key])
-                for i in bytecode:
-                    if i.opname == 'LOAD_METHOD':
-                        if i.argval == 'AF_INET' or 'SOCK_STREAM':
-                            continue
-                        else:
-                            print('error!')
+    def __init__(self, name, bases, class_dict):
+        for key, val in class_dict.items():
+            if inspect.isfunction(val):
+                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                if method_name:
+                    raise ValueError(f'called forbidden method "{method_name}"')
+            elif isinstance(val, socket):
+                raise ValueError('Socket object cannot be defined in class definition')
 
-        super(ClientVerifierMeta, self).__init__(*args, **kwargs)
+        super(ClientVerifierMeta, self).__init__(name, bases, class_dict)
 
 
-class ClientVerifier(metaclass=ClientVerifierMeta):
-    def __init__(self, s):
-        self.s = s
-
-
-class Client(ClientVerifier):
+class Client(metaclass=ClientVerifierMeta):
     def __init__(self):
         self.s = None
-        super(Client, self).__init__(self)
 
     def create_socket(self):
         self.s = socket(AF_INET, SOCK_STREAM)
