@@ -60,7 +60,7 @@ def find_forbidden_methods_call(func, method_names):
 
 # метакласс ClientVerifier
 class ClientVerifierMeta(type):
-    forbidden_method_names = ('accept', 'listen', 'AF_UNIX', 'SOCK_DGRAM')
+    forbidden_method_names = ('accept', 'listen', 'SOCK_DGRAM')
 
     def __init__(self, name, bases, class_dict):
         for key, val in class_dict.items():
