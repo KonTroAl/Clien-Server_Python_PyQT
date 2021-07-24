@@ -24,7 +24,6 @@ users = {
     'Julia': 'SpaceShuttle007'
 }
 
-users_contacts = ['KonTroAll', 'test2', 'Julia', 'test']
 usernames_auth = []
 room_names = ['#smalltalk']
 
@@ -56,98 +55,98 @@ def server_log_dec(func):
 
 
 # Авторизация пользователя на сервере
-@server_log_dec
-def user_authenticate(my_dict, sock):
-    logger.info('start user_authenticate!')
-    dict_auth_response = {}
-    user = my_dict['user']
-    for us in users.keys():
-        if us == user['user_name']:
-            usernames_auth.append(us)
-
-    if user['user_name'] in usernames_auth and users[user['user_name']] == user['password']:
-        dict_auth_response['response'] = 200
-        dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
-        print('authenticate completed!')
-        logger.info('authenticate completed!')
-        sock.send(pickle.dumps(dict_auth_response))
-        return dict_auth_response
-    else:
-        dict_auth_response['response'] = 402
-        dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
-        print('error!')
-        logger.info('error!')
-        sock.send(pickle.dumps(dict_auth_response))
-        return dict_auth_response
-
-
-# Проверка присутствия пользователя
-@server_log_dec
-def presence_user(client, sock):
-    dict_probe = {
-        'action': 'probe',
-        'time': timestamp
-    }
-
-    sock.send(pickle.dumps(dict_probe))
-
-    pre_data = client.recv(1024)
-    pre_data_load = pickle.loads(pre_data)
-    print('Сообщение от клиента: ', pre_data_load, ', длиной ', len(pre_data), ' байт')
-    return pre_data_load['action']
-
-
-# Отправка сообщения другому пользователю
-@server_log_dec
-def message_send(my_dict, sock):
-    msg_dict = {
-        'time': timestamp
-    }
-    if list(my_dict['to'])[0].isalpha():
-        for i in users_contacts:
-            if my_dict['to'] == i:
-                msg_dict['response'] = 200
-                msg_dict['alert'] = dict_signals[msg_dict['response']]
-                msg_dict['message'] = my_dict['message']
-                msg_dict['to'] = my_dict['to']
-                msg_dict['from'] = my_dict['from']
-                print('message send!')
-                logger.info('message send!')
-                sock.send(pickle.dumps(msg_dict))
-                return msg_dict
-            else:
-                msg_dict['response'] = 404
-                msg_dict['alert'] = dict_signals[msg_dict['response']]
-                msg_dict['message'] = my_dict['message']
-                msg_dict['to'] = my_dict['to']
-                msg_dict['from'] = my_dict['from']
-                logger.info('пользователь/чат отсутствует на сервере')
-                sock.send(pickle.dumps(msg_dict))
-                return msg_dict
-
-
-def message_room(my_dict, sock):
-    msg_dict = {
-        'time': timestamp
-    }
-    if my_dict['to'] in room_names:
-        msg_dict['response'] = 200
-        msg_dict['to'] = my_dict['to']
-        msg_dict['from'] = my_dict['from']
-        msg_dict['message'] = my_dict['message']
-        return msg_dict
-    else:
-        msg_dict['response'] = 404
-        logger.info('пользователь/чат отсутствует на сервере')
-        sock.send(pickle.dumps(msg_dict))
-        return msg_dict
-
-
-def message_room_send(my_dict, w):
-    for val in w:
-        val.send(pickle.dumps(my_dict))
-    print('message send!')
-    logger.info('message send!')
+# @server_log_dec
+# def user_authenticate(my_dict, sock):
+#     logger.info('start user_authenticate!')
+#     dict_auth_response = {}
+#     user = my_dict['user']
+#     for us in users.keys():
+#         if us == user['user_name']:
+#             usernames_auth.append(us)
+#
+#     if user['user_name'] in usernames_auth and users[user['user_name']] == user['password']:
+#         dict_auth_response['response'] = 200
+#         dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
+#         print('authenticate completed!')
+#         logger.info('authenticate completed!')
+#         sock.send(pickle.dumps(dict_auth_response))
+#         return dict_auth_response
+#     else:
+#         dict_auth_response['response'] = 402
+#         dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
+#         print('error!')
+#         logger.info('error!')
+#         sock.send(pickle.dumps(dict_auth_response))
+#         return dict_auth_response
+#
+#
+# # Проверка присутствия пользователя
+# @server_log_dec
+# def presence_user(client, sock):
+#     dict_probe = {
+#         'action': 'probe',
+#         'time': timestamp
+#     }
+#
+#     sock.send(pickle.dumps(dict_probe))
+#
+#     pre_data = client.recv(1024)
+#     pre_data_load = pickle.loads(pre_data)
+#     print('Сообщение от клиента: ', pre_data_load, ', длиной ', len(pre_data), ' байт')
+#     return pre_data_load['action']
+#
+#
+# # Отправка сообщения другому пользователю
+# @server_log_dec
+# def message_send(my_dict, sock):
+#     msg_dict = {
+#         'time': timestamp
+#     }
+#     if list(my_dict['to'])[0].isalpha():
+#         for i in users_contacts:
+#             if my_dict['to'] == i:
+#                 msg_dict['response'] = 200
+#                 msg_dict['alert'] = dict_signals[msg_dict['response']]
+#                 msg_dict['message'] = my_dict['message']
+#                 msg_dict['to'] = my_dict['to']
+#                 msg_dict['from'] = my_dict['from']
+#                 print('message send!')
+#                 logger.info('message send!')
+#                 sock.send(pickle.dumps(msg_dict))
+#                 return msg_dict
+#             else:
+#                 msg_dict['response'] = 404
+#                 msg_dict['alert'] = dict_signals[msg_dict['response']]
+#                 msg_dict['message'] = my_dict['message']
+#                 msg_dict['to'] = my_dict['to']
+#                 msg_dict['from'] = my_dict['from']
+#                 logger.info('пользователь/чат отсутствует на сервере')
+#                 sock.send(pickle.dumps(msg_dict))
+#                 return msg_dict
+#
+#
+# def message_room(my_dict, sock):
+#     msg_dict = {
+#         'time': timestamp
+#     }
+#     if my_dict['to'] in room_names:
+#         msg_dict['response'] = 200
+#         msg_dict['to'] = my_dict['to']
+#         msg_dict['from'] = my_dict['from']
+#         msg_dict['message'] = my_dict['message']
+#         return msg_dict
+#     else:
+#         msg_dict['response'] = 404
+#         logger.info('пользователь/чат отсутствует на сервере')
+#         sock.send(pickle.dumps(msg_dict))
+#         return msg_dict
+#
+#
+# def message_room_send(my_dict, w):
+#     for val in w:
+#         val.send(pickle.dumps(my_dict))
+#     print('message send!')
+#     logger.info('message send!')
 
 
 def read_requests(r_clients, all_clients):
@@ -176,8 +175,8 @@ metadata = Base.metadata
 
 class Clients(Base):
     __tablename__ = 'clients'
-    id = Column(Integer, primary_key=True)
-    user_name = Column(String)
+    id = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    user_name = Column(String, unique=True)
     password = Column(String)
     info = Column(Text)
 
@@ -207,26 +206,51 @@ class ClientHistory(Base):
 
 class ClientContacts(Base):
     __tablename__ = 'client_contacts'
-    id_owner = Column(Integer, ForeignKey('clients.id'), primary_key=True)
-    id_client = Column(Integer, ForeignKey('clients.id'))
+    id = Column(Integer, nullable=False, primary_key=True, autoincrement=True)
+    id_owner = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False, index=True)
+    id_client = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False, index=True)
 
     def __init__(self, id_owner, id_client):
         self.id_owner = id_owner
         self.id_client = id_client
 
     def __repr__(self):
-        return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+        return '%s' % self.id_client
 
+
+# ClientContacts.Clients = relationship('Clients', order_by=Clients.id, back_populates='ClientContacts')
 
 metadata.create_all(engine)
 
 session = Session()
 
-admin_user = Clients('test', 'test', 'admin')
-session.add(admin_user)
-session.commit()
-q_user = session.query(Clients).filter_by(user_name='test').first()
-print(q_user)
+
+# simple_user = Clients('test3', 'test3', 'simple user')
+# session.add(simple_user)
+# session.commit()
+# q_user = session.query(Clients).all()
+
+
+class Storage:
+
+    def add_user_contacts(self, user, contact):
+        id_user = session.query(Clients).filter_by(user_name=user).first()
+        id_contact = session.query(Clients).filter_by(user_name=contact).first()
+        add_contact = ClientContacts(id_user.id, id_contact.id)
+        session.add(add_contact)
+        session.commit()
+
+    def get_contacts(self, user):
+        user_contact = []
+        id_user = session.query(Clients).filter_by(user_name=user).first()
+        user_contact_id = session.query(ClientContacts).filter_by(id_owner=id_user.id).all()
+        for i in user_contact_id:
+            contact_name = session.query(Clients).filter_by(id=i.__dict__['id_client']).first()
+            user_contact.append(contact_name.user_name)
+        return user_contact
+
+
+storage = Storage()
 
 
 def find_forbidden_methods_call(func, method_names):
@@ -236,18 +260,16 @@ def find_forbidden_methods_call(func, method_names):
 
 
 class ServerVerifierMeta(type):
+    forbidden_method_names = ('connect', 'SOCK_DGRAM')
 
-    def __init__(self, *args, **kwargs):
-        forbidden_method_names = ('connect', 'SOCK_DGRAM')
+    def __init__(self, name, bases, class_dict):
+        for key, val in class_dict.items():
+            if inspect.isfunction(val):
+                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                if method_name:
+                    raise ValueError(f'called forbidden method "{method_name}"')
 
-        def __init__(self, name, bases, class_dict):
-            for key, val in class_dict.items():
-                if inspect.isfunction(val):
-                    method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
-                    if method_name:
-                        raise ValueError(f'called forbidden method "{method_name}"')
-
-            super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
+        super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
 
 
 class PortVerifier:
@@ -326,6 +348,7 @@ class Server(metaclass=ServerVerifierMeta):
         msg_dict = {
             'time': timestamp
         }
+        users_contacts = storage.get_contacts(my_dict['from'])
         if list(my_dict['to'])[0].isalpha():
             for i in users_contacts:
                 if my_dict['to'] == i:
@@ -371,15 +394,17 @@ class Server(metaclass=ServerVerifierMeta):
         logger.info('message send!')
 
     def get_contacts(self, my_dict, sock):
+        user = my_dict['user_name']
+        user_contacts = storage.get_contacts(user)
         contacts_dict = {
             'response': 200,
-            'alert': users_contacts,
+            'alert': user_contacts,
             'message': 'get_contacts'
         }
         sock.send(pickle.dumps(contacts_dict))
 
     def add_contacts(self, my_dict, sock):
-        users_contacts.append(my_dict['new_contact'])
+        # users_contacts.append(my_dict['new_contact'])
         contacts_dict = {
             'response': 200,
             'alert': dict_signals[200],

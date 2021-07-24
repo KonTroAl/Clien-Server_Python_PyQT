@@ -291,7 +291,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Драйвер Базы данных</string>
+     <string>Драйвер базы данных</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="DriverDBTextBox">

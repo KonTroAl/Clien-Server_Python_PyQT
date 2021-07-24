@@ -44,48 +44,50 @@ dict_signals = {
 
 test = True
 timestamp = datetime.datetime.now()
-engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
-Session = sessionmaker(bind=engine)
-Session.configure(bind=engine)
-
-Base = declarative_base()
-metadata = Base.metadata
 
 
-class ClientContacts(Base):
-    __tablename__ = 'client_contacts'
-    id_owner = Column(Integer, ForeignKey('clients.id'), primary_key=True)
-    id_client = Column(Integer, ForeignKey('clients.id'))
-    Clients = relationship('Clients', back_populates='ClientContacts')
-
-    def __init__(self, id_owner, id_client):
-        self.id_owner = id_owner
-        self.id_client = id_client
-
-    def __repr__(self):
-        return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
-
-
-class ClientMessageHistory(Base):
-    __tablename__ = 'client_message_history'
-
-    user_id = Column(Integer, ForeignKey('clients.id'), primary_key=True)
-    recipient_id = Column(Integer, ForeignKey('clients.id'))
-    user_message = Column(Text)
-    Clients = relationship('Clients', back_populates='ClientMessageHistory')
-
-    def __init__(self, user_id, recipient_id, user_message):
-        self.user_id = user_id
-        self.recipient_id = recipient_id
-        self.user_message = user_message
-
-    def __repr__(self):
-        return "From '%s': '%s' | From '%s': '%s' " % (
-            self.user_id, self.user_message, self.recipient_id, self.recipient_message)
-
-
-metadata.create_all(engine)
-session = Session()
+# engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
+# Session = sessionmaker(bind=engine)
+# Session.configure(bind=engine)
+#
+# Base = declarative_base()
+# metadata = Base.metadata
+#
+#
+# class ClientContacts(Base):
+#     __tablename__ = 'client_contacts'
+#     id_owner = Column(Integer, ForeignKey('clients.id'), primary_key=True)
+#     id_client = Column(Integer, ForeignKey('clients.id'))
+#     Clients = relationship('Clients', back_populates='ClientContacts')
+#
+#     def __init__(self, id_owner, id_client):
+#         self.id_owner = id_owner
+#         self.id_client = id_client
+#
+#     def __repr__(self):
+#         return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+#
+#
+# class ClientMessageHistory(Base):
+#     __tablename__ = 'client_message_history'
+#
+#     user_id = Column(Integer, ForeignKey('clients.id'), primary_key=True)
+#     recipient_id = Column(Integer, ForeignKey('clients.id'))
+#     user_message = Column(Text)
+#     Clients = relationship('Clients', back_populates='ClientMessageHistory')
+#
+#     def __init__(self, user_id, recipient_id, user_message):
+#         self.user_id = user_id
+#         self.recipient_id = recipient_id
+#         self.user_message = user_message
+#
+#     def __repr__(self):
+#         return "From '%s': '%s' | From '%s': '%s' " % (
+#             self.user_id, self.user_message, self.recipient_id, self.recipient_message)
+#
+#
+# metadata.create_all(engine)
+# session = Session()
 
 
 # декоратор
@@ -181,10 +183,7 @@ class Client(metaclass=ClientVerifierMeta):
             'encoding': 'utf-8',
             'message': message
         }
-        user = session.query(Client).filter_by(user_name=usernames_auth[0]).one()
-        recipient = session.query(Client).filter_by(user_name=to).one()
-        user_message = ClientMessageHistory(user.id, recipient.id, message)
-        session.add(user_message)
+
         self.s.send(pickle.dumps(message_dict))
 
     def get_contacts(self, username):
@@ -295,7 +294,7 @@ def message_recv(s):
         if message_data_load['message'] == 'Q':
             break
         elif message_data_load['message'] == 'get_contacts':
-            print(f"Ваш список контактов: , {message_data_load['alert']}")
+            print(f"Ваш список контактов: {message_data_load['alert']}")
         elif message_data_load['message'] == 'add_contact':
             print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
         elif message_data_load['message'] == 'add_group':
@@ -385,7 +384,7 @@ def main():
                     }
                     s.send(pickle.dumps(message_dict))
                     break
-                session.commit()
+
             msg.join(timeout=1)
 
             client.logout()
