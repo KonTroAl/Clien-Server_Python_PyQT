@@ -218,7 +218,22 @@ class ClientContacts(Base):
         return '%s' % self.id_client
 
 
-# ClientContacts.Clients = relationship('Clients', order_by=Clients.id, back_populates='ClientContacts')
+class ClientMessageHistory(Base):
+    __tablename__ = 'client_message_history'
+    message_id = Column(Integer, nullable=False, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
+    recipient_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
+    user_message = Column(Text)
+    Clients = relationship('Clients', back_populates='ClientMessageHistory')
+
+    def __init__(self, user_id, recipient_id, user_message):
+        self.user_id = user_id
+        self.recipient_id = recipient_id
+        self.user_message = user_message
+
+    def __repr__(self):
+        return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
+
 
 metadata.create_all(engine)
 
@@ -248,6 +263,13 @@ class Storage:
             contact_name = session.query(Clients).filter_by(id=i.__dict__['id_client']).first()
             user_contact.append(contact_name.user_name)
         return user_contact
+
+    def message(self, user, contact, message):
+        id_user = session.query(Clients).filter_by(user_name=user).first()
+        id_contact = session.query(Clients).filter_by(user_name=contact).first()
+        add_message = ClientMessageHistory(id_user, id_contact, message)
+        session.add(add_message)
+        session.commit()
 
 
 storage = Storage()
@@ -360,6 +382,7 @@ class Server(metaclass=ServerVerifierMeta):
                     print('message send!')
                     logger.info('message send!')
                     sock.send(pickle.dumps(msg_dict))
+                    storage.message(my_dict['from'], my_dict['to'], my_dict['message'])
                     return msg_dict
                 else:
                     msg_dict['response'] = 404
