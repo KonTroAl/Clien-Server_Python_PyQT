@@ -225,8 +225,8 @@ metadata.create_all(engine)
 session = Session()
 
 
-# simple_user = Clients('test3', 'test3', 'simple user')
-# session.add(simple_user)
+# admin_user = Clients('KonTroAll', 'SpaceShip007', 'main admin')
+# session.add(admin_user)
 # session.commit()
 # q_user = session.query(Clients).all()
 
@@ -307,9 +307,9 @@ class Server(metaclass=ServerVerifierMeta):
         return self.addr
 
     def user_authenticate(self, my_dict, sock):
-        # self.s = socket(AF_INET, SOCK_STREAM)
+
         logger.info('start user_authenticate!')
-        # self.s.send(pickle.dumps('start!'))
+
         dict_auth_response = {}
         user = my_dict['user']
         for us in users.keys():
@@ -404,7 +404,7 @@ class Server(metaclass=ServerVerifierMeta):
         sock.send(pickle.dumps(contacts_dict))
 
     def add_contacts(self, my_dict, sock):
-        # users_contacts.append(my_dict['new_contact'])
+        storage.add_user_contacts(my_dict['user_name'], my_dict['new_contact'])
         contacts_dict = {
             'response': 200,
             'alert': dict_signals[200],
