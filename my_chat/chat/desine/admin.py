@@ -25,6 +25,6 @@ class AdminDialog(QtWidgets.QDialog):
             self.is_active = True
             port = self.ui.PortTextBox.text()
 
-            
+
             server = my_server.Server()
             server.start_server(port)
