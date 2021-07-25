@@ -307,6 +307,7 @@ class PortVerifier:
         if value != 7777:
             raise ValueError("Wrong port number!")
         print('verification complete!')
+        return value
 
 
 class Server(metaclass=ServerVerifierMeta):
@@ -319,7 +320,14 @@ class Server(metaclass=ServerVerifierMeta):
         self.s = socket(AF_INET, SOCK_STREAM)
         return self.s
 
-    def start_server(self):
+    def start_server(self, num_port=7777):
+        self.port = num_port
+        self.s.bind(('', int(self.port)))
+        self.s.listen(5)
+        self.s.settimeout(0.2)
+        return self.port
+
+    def accept_request(self):
         self.client, self.addr = self.s.accept()
 
     def client_return(self):
@@ -453,20 +461,15 @@ class Server(metaclass=ServerVerifierMeta):
 
 def main():
     server = Server()
-    s = server.create_socket()
-    num_port = 7777
-    s.bind(('', int(num_port)))
-    s.listen(5)
-    s.settimeout(0.2)
-    server.port = num_port
+    server.create_socket()
+    server.start_server()
 
     logger.info('start connection!')
     clients = []
 
     while True:
         try:
-            # client, addr = s.accept()
-            server.start_server()
+            server.accept_request()
         except OSError as e:
             pass
         else:
