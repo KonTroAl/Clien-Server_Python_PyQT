@@ -8,9 +8,11 @@ import datetime
 import select
 import inspect
 
+
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
+
 
 logger = logging.getLogger('my_server')
 
@@ -165,6 +167,7 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
+
 engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
@@ -292,6 +295,7 @@ class ServerVerifierMeta(type):
                     raise ValueError(f'called forbidden method "{method_name}"')
 
         super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
+
 
 
 class PortVerifier:

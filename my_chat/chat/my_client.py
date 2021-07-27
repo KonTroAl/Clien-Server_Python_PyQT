@@ -7,9 +7,11 @@ from functools import wraps
 import datetime
 from threading import Thread
 import inspect
+
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
+
 
 logger = logging.getLogger('my_client')
 
@@ -355,7 +357,9 @@ def main():
 
 
 if __name__ == '__main__':
+
     try:
         main()
     except Exception as e:
         print(e)
+
