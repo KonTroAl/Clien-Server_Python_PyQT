@@ -1,10 +1,12 @@
 from socket import socket, AF_INET, SOCK_STREAM
+import dis
 import time
 import pickle
 import logging
 from functools import wraps
 import datetime
 from threading import Thread
+import inspect
 
 logger = logging.getLogger('my_client')
 
@@ -48,6 +50,60 @@ def client_log_dec(func):
         return res
 
     return call
+
+
+def find_forbidden_methods_call(func, method_names):
+    for instr in dis.get_instructions(func):
+        if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
+            return instr.argval
+
+
+# метакласс ClientVerifier
+class ClientVerifierMeta(type):
+    forbidden_method_names = ('accept', 'listen', 'SOCK_DGRAM')
+
+    def __init__(self, name, bases, class_dict):
+        for key, val in class_dict.items():
+            if inspect.isfunction(val):
+                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                if method_name:
+                    raise ValueError(f'called forbidden method "{method_name}"')
+            elif isinstance(val, socket):
+                raise ValueError('Socket object cannot be defined in class definition')
+
+        super(ClientVerifierMeta, self).__init__(name, bases, class_dict)
+
+
+class Client(metaclass=ClientVerifierMeta):
+    def __init__(self):
+        self.s = None
+
+    def create_socket(self):
+        self.s = socket(AF_INET, SOCK_STREAM)
+        return self.s
+
+    def start_connection(self, host, port, s):
+        self.s = s
+        s.connect((host, port))
+
+    def user_auth(self, username, password):
+        dict_auth = {
+            'action': 'authenticate',
+            'time': timestamp,
+            'user': {
+                'user_name': username,
+                'password': password
+            }
+        }
+        self.s.send(pickle.dumps(dict_auth))
+        auth_data = self.s.recv(1024)
+        auth_data_loads = pickle.loads(auth_data)
+        if auth_data_loads['response'] == 200:
+            usernames_auth.append(username)
+        logger.info(auth_data_loads)
+        print('Сообщение от сервера: ', pickle.loads(auth_data), ', длиной ', len(auth_data), ' байт')
+
+        return auth_data_loads
 
 
 # Авторизация пользователя на сервере
@@ -215,11 +271,19 @@ def main(s):
 
 
 if __name__ == '__main__':
-    try:
-        s = socket(AF_INET, SOCK_STREAM)
-        s.connect(('localhost', 8007))
-        logger.info('start connection!')
-        main(s)
-        s.close()
-    except Exception as e:
-        print(e)
+    # try:
+    HOST = 'localhost'
+    PORT = 7777
+
+    # s = socket(AF_INET, SOCK_STREAM)
+    logger.info('start connection!')
+
+    client = Client()
+    s = client.create_socket()
+    client.start_connection(HOST, PORT, s)
+
+    # client.user_auth('test', 'test')
+    # main(s)
+    s.close()
+# except Exception as e:
+#     print(e)

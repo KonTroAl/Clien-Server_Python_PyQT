@@ -132,6 +132,7 @@ def message_recv(s):
             break
         elif message_data_load['message'] == 'add_group':
             print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
+            # return ''
         else:
             if message_data_load['to'][0].isalpha():
                 print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
@@ -170,10 +171,9 @@ def main(s):
 
             user_presence(s)
 
-
+            msg = Thread(target=message_recv, args=(s,))
+            msg.start()
             while True:
-                msg = Thread(target=message_recv, args=(s,))
-                msg.start()
                 user_choice = input(
                     "Введите, что вы хотите сделать (П/Отправить сообщение пользователю, Г/Отправить группе, ВГ/Вступить в группу). Чтобы выйти введите: 'Q': ")
 
@@ -201,8 +201,8 @@ def main(s):
                         'message': user_choice.upper()
                     }
                     s.send(pickle.dumps(message_dict))
-                    msg.join(timeout=1)
                     break
+            msg.join(timeout=1)
 
             logout(s)
             quit_data = s.recv(1024)

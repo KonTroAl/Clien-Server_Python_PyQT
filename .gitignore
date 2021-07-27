@@ -1,3 +1,9 @@
 my_chat/.idea
 __pycache__/
 my_chat/chat/my_server_2.py
+task.txt
+virtual_env/
+my_chat/chat/sqlite3.db
+my_chat/chat/sqlite3.db-journal
+my_chat/chat/project copy
+example
