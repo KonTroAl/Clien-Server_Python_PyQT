@@ -8,9 +8,11 @@ import datetime
 import select
 import inspect
 
+
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
+
 
 logger = logging.getLogger('my_server')
 
@@ -169,6 +171,7 @@ engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 
+
 Base = declarative_base()
 metadata = Base.metadata
 
@@ -280,6 +283,11 @@ def find_forbidden_methods_call(func, method_names):
         if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
             return instr.argval
 
+def find_forbidden_methods_call(func, method_names):
+    for instr in dis.get_instructions(func):
+        if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
+            return instr.argval
+
 
 class ServerVerifierMeta(type):
     forbidden_method_names = ('connect', 'SOCK_DGRAM')
@@ -292,6 +300,7 @@ class ServerVerifierMeta(type):
                     raise ValueError(f'called forbidden method "{method_name}"')
 
         super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
+
 
 
 class PortVerifier:
