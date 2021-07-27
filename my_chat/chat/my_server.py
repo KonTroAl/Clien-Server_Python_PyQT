@@ -8,6 +8,11 @@ import datetime
 import select
 import inspect
 
+
+from sqlalchemy.orm import mapper, sessionmaker
+from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
+
+
 logger = logging.getLogger('my_server')
 
 timestamp = int(time.time())
@@ -161,6 +166,79 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
+
+engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
+metadata = MetaData()
+clients_table = Table('clients', metadata,
+                      Column('id', Integer, primary_key=True),
+                      Column('user_name', String),
+                      Column('info', Text)
+                      )
+client_history_table = Table('client_history', metadata,
+                             Column('login_time', Time),
+                             Column('ip_address', Integer, primary_key=True)
+                             )
+client_contacts_table = Table('client_contacts', metadata,
+                              Column('id_owner', Integer, primary_key=True),
+                              Column('id_client', Integer)
+                              )
+
+metadata.create_all(engine)
+
+
+class Storage:
+    pass
+
+
+class Client:
+    def __init__(self, user_name, info):
+        self.user_name = user_name
+        self.info = info
+
+    def __repr__(self):
+        return "<Client('%s', '%s')>" % (self.user_name, self.info)
+
+
+class ClientHistory:
+    def __init__(self, login_time, ip_address):
+        self.login_time = login_time
+        self.ip_address = ip_address
+
+    def __repr__(self):
+        return "<ClientHistory('%s', '%s')>" % (self.login_time, self.ip_address)
+
+
+class ClientContacts:
+    def __init__(self, id_owner, id_client):
+        self.id_owner = id_owner
+        self.id_client = id_client
+
+    def __repr__(self):
+        return "<ClientContacts('%s', '%s')>" % (self.id_owner, self.id_client)
+
+
+m = mapper(Client, clients_table)
+mapper(ClientHistory, client_history_table)
+mapper(ClientContacts, client_contacts_table)
+client = Client('test', 'test of creation table')
+client_history = ClientHistory('14:13 15.07.2021', '127.0.0.1')
+client_contacts = ClientContacts('1', '2')
+print(client)
+print(client_history)
+print(client_contacts)
+
+Session = sessionmaker()
+Session.configure(bind=engine)
+session = Session()
+session.add(client)
+
+session.commit()
+print(m)
+print(client.id)
+
+
+# print(client.id)
+
 def find_forbidden_methods_call(func, method_names):
     for instr in dis.get_instructions(func):
         if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
@@ -180,6 +258,7 @@ class ServerVerifierMeta(type):
         super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
 
 
+
 class PortVerifier:
 
     def __init__(self, port=7777):
@@ -193,6 +272,7 @@ class PortVerifier:
         if value != 7777:
             raise ValueError("Wrong port number!")
         print('verification complete!')
+
 
 
 class Server(metaclass=ServerVerifierMeta):

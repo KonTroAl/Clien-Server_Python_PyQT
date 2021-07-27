@@ -6,8 +6,5 @@ virtual_env/
 my_chat/chat/sqlite3.db
 my_chat/chat/sqlite3.db-journal
 my_chat/chat/project copy
-<<<<<<< HEAD
 example
-=======
-example
->>>>>>> main
+
