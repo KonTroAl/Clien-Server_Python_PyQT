@@ -1,5 +1,5 @@
 import unittest
-from big_task.my_client import user_authenticate, message_to_user, message_to_all, user_presence
+from HW.my_chat.chat.my_client import user_authenticate, message_to_user, message_to_all, user_presence
 import time
 
 

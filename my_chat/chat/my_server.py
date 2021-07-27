@@ -1,10 +1,12 @@
 from socket import socket, AF_INET, SOCK_STREAM
+import dis
 import time
 import pickle
 import logging
 from functools import wraps
 import datetime
 import select
+import inspect
 
 logger = logging.getLogger('my_server')
 
@@ -159,6 +161,73 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
+def find_forbidden_methods_call(func, method_names):
+    for instr in dis.get_instructions(func):
+        if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
+            return instr.argval
+
+
+class ServerVerifierMeta(type):
+    forbidden_method_names = ('connect', 'SOCK_DGRAM')
+
+    def __init__(self, name, bases, class_dict):
+        for key, val in class_dict.items():
+            if inspect.isfunction(val):
+                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                if method_name:
+                    raise ValueError(f'called forbidden method "{method_name}"')
+
+        super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
+
+
+class PortVerifier:
+
+    def __init__(self, port=7777):
+        self.port = port
+
+    def __get__(self, instance, owner):
+        return self.port
+
+    def __set__(self, instance, value):
+        print('start port verification!')
+        if value != 7777:
+            raise ValueError("Wrong port number!")
+        print('verification complete!')
+
+
+class Server(metaclass=ServerVerifierMeta):
+    port = PortVerifier()
+
+    def __init__(self):
+        self.s = None
+
+    def create_socket(self):
+        self.s = socket(AF_INET, SOCK_STREAM)
+        return self.s
+
+    def start_server(self):
+
+        clients = []
+        while True:
+            try:
+                client, addr = self.s.accept()
+            except OSError as e:
+                pass
+            else:
+                print("Получен запрос на соединение от %s" % str(addr))
+                clients.append(client)
+
+            finally:
+                r = []
+                w = []
+                try:
+                    r, w, e = select.select(clients, clients, [])
+                except:
+                    pass
+
+                requests = read_requests(r, clients)
+
+
 def main():
     s = socket(AF_INET, SOCK_STREAM)
     s.bind(('', 8007))
@@ -206,12 +275,23 @@ def main():
                             sock.send(pickle.dumps({'action': 'quit'}))
                         elif requests[sock]['action'] == 'add_group':
                             room_names.append(requests[sock]['room_name'])
-                            sock.send(pickle.dumps({'response': 200, 'alert': dict_signals[200], 'message': 'add_group'}))
-
+                            sock.send(
+                                pickle.dumps({'response': 200, 'alert': dict_signals[200], 'message': 'add_group'}))
 
 
 if __name__ == '__main__':
     try:
-        main()
+        # s = socket(AF_INET, SOCK_STREAM)
+
+        # main()
+        server = Server()
+        s = server.create_socket()
+        num_port = 7777
+        s.bind(('', int(num_port)))
+        s.listen(5)
+        s.settimeout(0.2)
+        server.port = num_port
+
+        server.start_server()
     except Exception as e:
         print(e)
