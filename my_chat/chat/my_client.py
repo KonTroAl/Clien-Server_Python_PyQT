@@ -272,19 +272,19 @@ def main(s):
 
 
 if __name__ == '__main__':
-    try:
-        HOST = 'localhost'
-        PORT = 7777
+    # try:
+    HOST = 'localhost'
+    PORT = 7777
 
-        # s = socket(AF_INET, SOCK_STREAM)
-        logger.info('start connection!')
+    # s = socket(AF_INET, SOCK_STREAM)
+    logger.info('start connection!')
 
-        client = Client()
-        s = client.create_socket()
-        client.start_connection(HOST, PORT, s)
+    client = Client()
+    s = client.create_socket()
+    client.start_connection(HOST, PORT, s)
 
-        # client.user_auth('test', 'test')
-        # main(s)
-        s.close()
-    except Exception as e:
-        print(e)
+    # client.user_auth('test', 'test')
+    # main(s)
+    s.close()
+# except Exception as e:
+#     print(e)

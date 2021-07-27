@@ -8,8 +8,10 @@ import datetime
 import select
 import inspect
 
+
 from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
+
 
 logger = logging.getLogger('my_server')
 
@@ -164,6 +166,7 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
+
 engine = create_engine('sqlite:///:memory:', echo=True, pool_recycle=7200)
 metadata = MetaData()
 clients_table = Table('clients', metadata,
@@ -255,9 +258,6 @@ class ServerVerifierMeta(type):
         super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
 
 
-class ServerVerifier(metaclass=ServerVerifierMeta):
-    pass
-
 
 class PortVerifier:
 
@@ -274,7 +274,8 @@ class PortVerifier:
         print('verification complete!')
 
 
-class Server(ServerVerifier):
+
+class Server(metaclass=ServerVerifierMeta):
     port = PortVerifier()
 
     def __init__(self):
