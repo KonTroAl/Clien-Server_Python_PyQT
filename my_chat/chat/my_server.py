@@ -6,6 +6,7 @@ import logging
 from functools import wraps
 import datetime
 import select
+import inspect
 
 from sqlalchemy.orm import mapper, sessionmaker
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
@@ -235,28 +236,23 @@ print(client.id)
 
 # print(client.id)
 
+def find_forbidden_methods_call(func, method_names):
+    for instr in dis.get_instructions(func):
+        if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
+            return instr.argval
+
 
 class ServerVerifierMeta(type):
+    forbidden_method_names = ('connect', 'SOCK_DGRAM')
 
-    def __init__(self, *args, **kwargs):
-        for key, val in self.__dict__.items():
-            if key == 'start_server':
-                bytecode = dis.Bytecode(self.__dict__[key])
-                for i in bytecode:
-                    if i.opname == 'LOAD_METHOD':
-                        if i.argval == 'listen' or 'accept':
-                            continue
-                        else:
-                            print('error!')
-            elif key == 'create_socket':
-                bytecode = dis.Bytecode(self.__dict__[key])
-                for i in bytecode:
-                    if i.opname == 'LOAD_METHOD':
-                        if i.argval == 'AF_INET' or 'SOCK_STREAM':
-                            continue
-                        else:
-                            print('error!')
-        super(ServerVerifierMeta, self).__init__(*args, **kwargs)
+    def __init__(self, name, bases, class_dict):
+        for key, val in class_dict.items():
+            if inspect.isfunction(val):
+                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                if method_name:
+                    raise ValueError(f'called forbidden method "{method_name}"')
+
+        super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
 
 
 class ServerVerifier(metaclass=ServerVerifierMeta):
@@ -265,8 +261,11 @@ class ServerVerifier(metaclass=ServerVerifierMeta):
 
 class PortVerifier:
 
-    def __init__(self, port):
+    def __init__(self, port=7777):
         self.port = port
+
+    def __get__(self, instance, owner):
+        return self.port
 
     def __set__(self, instance, value):
         print('start port verification!')
@@ -276,7 +275,7 @@ class PortVerifier:
 
 
 class Server(ServerVerifier):
-    port = PortVerifier('port')
+    port = PortVerifier()
 
     def __init__(self):
         self.s = None
