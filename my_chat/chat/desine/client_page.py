@@ -52,10 +52,10 @@ class Ui_ClientWindow(object):
         self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
         self.textBrowser.setGeometry(QtCore.QRect(230, 100, 551, 391))
         self.textBrowser.setObjectName("textBrowser")
-        ClientWindow.setCentralWidget(self.centralwidget)
+        # ClientWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(ClientWindow)
-        self.SendMessageButton.clicked.connect(self.EnterMessage.clear)
+        # self.SendMessageButton.clicked.connect(self.EnterMessage.clear)
         QtCore.QMetaObject.connectSlotsByName(ClientWindow)
 
     def retranslateUi(self, ClientWindow):
