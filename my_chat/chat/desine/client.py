@@ -4,6 +4,8 @@ from queue import Queue
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
 
+
+
 import importlib.util
 import importlib
 
@@ -67,6 +69,13 @@ class ClientContactsView(QObject):
         self.gotData.emit(user_contacts)
 
 
+class ClickedEvents(QtWidgets.QLabel):
+    clicked = pyqtSignal()
+
+    def mouseDoubleClickEvent(self, a0: QtGui.QMouseEvent) -> None:
+        super().mouseDoubleClickEvent(a0)
+        self.clicked.emit()
+
 class ClientPage(QtWidgets.QDialog):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
@@ -85,9 +94,13 @@ class ClientPage(QtWidgets.QDialog):
     def send_message(self):
         pass
 
+    def choose_chat(self, data):
+        self.ui.ChatHedding.setText(data)
+
     def add_contact(self):
         contact = self.ui.FinderContacts.text()
         self.ui.ContactsList.append(contact)
+        self.ui.FinderContacts.clear()
 
     def start_client(self):
         self.contacts_list = ClientContactsView(self.ui.UserLable.text())
@@ -96,6 +109,7 @@ class ClientPage(QtWidgets.QDialog):
 
         self.ui.SearchButton.setAutoDefault(True)
         self.ui.FinderContacts.returnPressed.connect(self.ui.SearchButton.click)
+
 
 if __name__ == '__main__':
     # test_val = ClientContactsView('test')

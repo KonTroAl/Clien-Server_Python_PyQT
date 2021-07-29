@@ -55,6 +55,13 @@ class Ui_ClientWindow(object):
         self.SearchButton = QtWidgets.QPushButton(self.centralwidget)
         self.SearchButton.setGeometry(QtCore.QRect(150, 100, 51, 31))
         self.SearchButton.setObjectName("SearchButton")
+        self.ChatHedding = QtWidgets.QLabel(self.centralwidget)
+        self.ChatHedding.setGeometry(QtCore.QRect(230, 79, 551, 21))
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.ChatHedding.setFont(font)
+        self.ChatHedding.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.ChatHedding.setObjectName("ChatHedding")
         ClientWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(ClientWindow)
@@ -71,3 +78,4 @@ class Ui_ClientWindow(object):
         self.SendMessageButton.setText(_translate("ClientWindow", "Отправить"))
         self.UserLable.setText(_translate("ClientWindow", "Test"))
         self.SearchButton.setText(_translate("ClientWindow", "Search"))
+        self.ChatHedding.setText(_translate("ClientWindow", "TextLabel"))
