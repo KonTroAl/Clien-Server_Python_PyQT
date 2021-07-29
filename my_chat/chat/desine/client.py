@@ -1,6 +1,5 @@
 import sys
 from queue import Queue
-from threading import Thread
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
@@ -74,6 +73,7 @@ class ClientPage(QtWidgets.QDialog):
         self.ui = Ui_ClientWindow()
         self.ui.setupUi(self)
         self.ui.SendMessageButton.clicked.connect(self.send_message)
+        self.ui.SearchButton.clicked.connect(self.add_contact)
 
         self.contacts_list = None
 
@@ -85,12 +85,17 @@ class ClientPage(QtWidgets.QDialog):
     def send_message(self):
         pass
 
+    def add_contact(self):
+        contact = self.ui.FinderContacts.text()
+        self.ui.ContactsList.append(contact)
+
     def start_client(self):
         self.contacts_list = ClientContactsView(self.ui.UserLable.text())
         self.contacts_list.gotData.connect(self.show_client_contacts)
         self.contacts_list.show_contacts()
 
-
+        self.ui.SearchButton.setAutoDefault(True)
+        self.ui.FinderContacts.returnPressed.connect(self.ui.SearchButton.click)
 
 if __name__ == '__main__':
     # test_val = ClientContactsView('test')

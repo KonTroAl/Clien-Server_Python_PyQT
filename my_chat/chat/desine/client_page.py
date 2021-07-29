@@ -20,7 +20,7 @@ class Ui_ClientWindow(object):
         self.ContactsList = QtWidgets.QTextEdit(self.centralwidget)
         self.ContactsList.setGeometry(QtCore.QRect(10, 160, 191, 391))
         self.ContactsList.setObjectName("ContactsList")
-        self.FinderContacts = QtWidgets.QTextEdit(self.centralwidget)
+        self.FinderContacts = QtWidgets.QLineEdit(self.centralwidget)
         self.FinderContacts.setGeometry(QtCore.QRect(10, 100, 191, 31))
         self.FinderContacts.setObjectName("FinderContacts")
         self.HeddingContactsList = QtWidgets.QLabel(self.centralwidget)
@@ -52,6 +52,9 @@ class Ui_ClientWindow(object):
         self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
         self.textBrowser.setGeometry(QtCore.QRect(230, 100, 551, 391))
         self.textBrowser.setObjectName("textBrowser")
+        self.SearchButton = QtWidgets.QPushButton(self.centralwidget)
+        self.SearchButton.setGeometry(QtCore.QRect(150, 100, 51, 31))
+        self.SearchButton.setObjectName("SearchButton")
         # ClientWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(ClientWindow)
@@ -67,3 +70,4 @@ class Ui_ClientWindow(object):
         self.EnterMessage.setPlaceholderText(_translate("ClientWindow", "Введите ваше сообщение..."))
         self.SendMessageButton.setText(_translate("ClientWindow", "Отправить"))
         self.UserLable.setText(_translate("ClientWindow", "test"))
+        self.SearchButton.setText(_translate("ClientWindow", "Search"))

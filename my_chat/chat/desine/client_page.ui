@@ -29,7 +29,7 @@
      <rect>
       <x>10</x>
       <y>100</y>
-      <width>191</width>
+      <width>131</width>
       <height>31</height>
      </rect>
     </property>
@@ -127,6 +127,19 @@
       <width>551</width>
       <height>391</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="SearchButton">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>100</y>
+      <width>51</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Search</string>
     </property>
    </widget>
   </widget>
