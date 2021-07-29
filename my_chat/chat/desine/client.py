@@ -65,7 +65,6 @@ class ClientContactsView(QObject):
             user_contacts.append(data)
             self.res_queue.task_done()
         self.res_queue.task_done()
-        print(user_contacts)
         self.gotData.emit(user_contacts)
 
 
@@ -75,8 +74,6 @@ class ClientPage(QtWidgets.QDialog):
         self.ui = Ui_ClientWindow()
         self.ui.setupUi(self)
         self.ui.SendMessageButton.clicked.connect(self.send_message)
-
-        self.ui.ContactsList.append(self.ui.UserLable.text())
 
         self.contacts_list = None
 
@@ -92,23 +89,15 @@ class ClientPage(QtWidgets.QDialog):
         self.contacts_list = ClientContactsView(self.ui.UserLable.text())
         self.contacts_list.gotData.connect(self.show_client_contacts)
         self.contacts_list.show_contacts()
-        # print(self.contacts_list.gotData)
-        #
-        # self.thread = QThread()
-        # self.contacts_list.moveToThread(self.thread)
-        #
-        # self.thread.started.connect(self.contacts_list.show_contacts)
-        # # self.contacts_list.finished.connect(self.thread.quit)
-        # # self.contacts_list.finished.connect(self.finished)
-        #
-        # self.thread.start()
+
 
 
 if __name__ == '__main__':
-    test_val = ClientContactsView('test')
-    test_val.show_contacts()
+    # test_val = ClientContactsView('test')
+    # test_val.show_contacts()
 
-    # app = QtWidgets.QApplication(sys.argv)
-    # client_page = ClientPage()
-    # client_page.show()
-    # sys.exit(app.exec_())
+    app = QtWidgets.QApplication(sys.argv)
+    client_page = ClientPage()
+    client_page.start_client()
+    client_page.show()
+    sys.exit(app.exec_())
