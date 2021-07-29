@@ -66,4 +66,4 @@ class Ui_ClientWindow(object):
         self.HeddingFinder.setText(_translate("ClientWindow", "Поиск/добавление контактов"))
         self.EnterMessage.setPlaceholderText(_translate("ClientWindow", "Введите ваше сообщение..."))
         self.SendMessageButton.setText(_translate("ClientWindow", "Отправить"))
-        self.UserLable.setText(_translate("ClientWindow", "Test"))
+        self.UserLable.setText(_translate("ClientWindow", "test"))
