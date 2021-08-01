@@ -4,8 +4,6 @@ from queue import Queue
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
 
-
-
 import importlib.util
 import importlib
 
@@ -69,7 +67,6 @@ class ClientContactsView(QObject):
         self.gotData.emit(user_contacts)
 
 
-
 class ClientPage(QtWidgets.QDialog):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
@@ -83,24 +80,22 @@ class ClientPage(QtWidgets.QDialog):
     @pyqtSlot(list)
     def show_client_contacts(self, data):
         for i in data:
-            self.ui.ContactsList.append(i)
+            self.ui.ContactsList.addItem(i)
 
     def send_message(self):
-        pass
+        message = self.ui.EnterMessage.text()
+        # to = self.ui.ChatHedding.text()
+        user = self.ui.UserLable.text()
+        if message:
+            self.ui.textBrowser.append(f'{user}: {message}')
+        self.ui.EnterMessage.clear()
 
-    def mouseDoubleClickEvent(self, event):
-        self.choose_contact(event.source())
-        return QtWidgets.QTextBrowser.mouseDoubleClickEvent(self, event)
-
-
-    def choose_contact(self, child):
-        print(type(child))
-
-
+    def choose_contact(self, item):
+        self.ui.ChatHedding.setText(item.text())
 
     def add_contact(self):
         contact = self.ui.FinderContacts.text()
-        self.ui.ContactsList.append(contact)
+        self.ui.ContactsList.addItem(contact)
         self.ui.FinderContacts.clear()
 
     def start_client(self):
@@ -111,7 +106,10 @@ class ClientPage(QtWidgets.QDialog):
         self.ui.SearchButton.setAutoDefault(True)
         self.ui.FinderContacts.returnPressed.connect(self.ui.SearchButton.click)
 
-        self.choose_contact(self.mouseDoubleClickEvent)
+        self.ui.ContactsList.itemDoubleClicked.connect(self.choose_contact)
+
+        self.ui.SendMessageButton.setAutoDefault(True)
+        self.ui.EnterMessage.returnPressed.connect(self.ui.SendMessageButton.click)
 
 
 if __name__ == '__main__':
