@@ -1,5 +1,6 @@
 import sys
 from queue import Queue
+import datetime
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
@@ -87,7 +88,7 @@ class ClientPage(QtWidgets.QDialog):
         # to = self.ui.ChatHedding.text()
         user = self.ui.UserLable.text()
         if message:
-            self.ui.textBrowser.append(f'{user}: {message}')
+            self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
         self.ui.EnterMessage.clear()
 
     def choose_contact(self, item):
