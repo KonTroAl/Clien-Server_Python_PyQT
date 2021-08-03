@@ -104,6 +104,21 @@ class Client(metaclass=ClientVerifierMeta):
         self.s = s
         s.connect((host, port))
 
+    def user_registry(self, username, password, info):
+        dict_reg = {
+            'action': 'registry',
+            'time': timestamp,
+            'user': {
+                'username': username,
+                'password': password,
+                'info': info
+            }
+        }
+        self.s.send(pickle.dumps(dict_reg))
+        reg_data = self.s.recv(1024)
+        reg_data_loads = pickle.loads(reg_data)
+        print(reg_data_loads)
+
     def user_auth(self, username, password):
         dict_auth = {
             'action': 'authenticate',
@@ -123,7 +138,8 @@ class Client(metaclass=ClientVerifierMeta):
         if hmac.compare_digest(digest, auth_data_loads['digest']) and auth_data_loads['response'] == 200:
             usernames_auth.append(username)
         logger.info(auth_data_loads)
-        print(f"Сообщение от сервера: 'response': {auth_data_loads['response']}, 'alert': {auth_data_loads['alert']}, длиной {len(auth_data)} байт")
+        print(
+            f"Сообщение от сервера: 'response': {auth_data_loads['response']}, 'alert': {auth_data_loads['alert']}, длиной {len(auth_data)} байт")
 
         return auth_data_loads
 
@@ -303,8 +319,8 @@ def main():
     client.start_connection(HOST, PORT, s)
 
     while True:
-        start = input('Добро пожаловать! Хотите авторизоваться? (Y / N): ')
-        if start.upper() == 'Y':
+        start = input('Добро пожаловать! Для авторизации введите "A": , Для регистрации введите "R": , Для выхода введите "Q": ')
+        if start.upper() == 'A':
             username = input('Enter your login: ')
             password = input('Enter your password: ')
             if username in usernames_auth:
@@ -363,13 +379,22 @@ def main():
                     break
 
             msg.join(timeout=1)
-
             client.logout()
             quit_data = s.recv(1024)
             logger.info(pickle.loads(quit_data))
             usernames_auth.clear()
             print('Сообщение от сервера: ', pickle.loads(quit_data), ', длиной ', len(quit_data), ' байт \n')
-        else:
+        elif start.upper() == 'R':
+            login = input('Enter your login: ')
+            info = input('Enter some info about yourself: ')
+            while True:
+                password_1 = input('Enter your password: ')
+                password_2 = input('Enter your password again: ')
+
+                if password_1 == password_2:
+                    client.user_registry(login, password_1, info)
+                    break
+        elif start.upper() == 'Q':
             print('До свидания!')
             break
     s.close()

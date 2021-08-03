@@ -1,4 +1,5 @@
 import hmac
+import os
 from socket import socket, AF_INET, SOCK_STREAM
 import dis
 import time
@@ -226,6 +227,21 @@ class Server(metaclass=ServerVerifierMeta):
     def addr_return(self):
         return self.addr
 
+    def user_registry(self, my_dict, sock):
+        dict_reg_response = {}
+        user = my_dict['user']
+        password = user['password']
+        salt = user['username']
+        key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 10000)
+        add_user = Clients(user['username'], key, user['info'])
+        session.add(add_user)
+        session.commit()
+        q_val = session.query(Clients).all()
+        print(q_val)
+        dict_reg_response['response'] = 200
+        dict_reg_response['alert'] = dict_signals[dict_reg_response['response']]
+        sock.send(pickle.dumps(dict_reg_response))
+
     def user_authenticate(self, my_dict, sock):
 
         logger.info('start user_authenticate!')
@@ -235,11 +251,15 @@ class Server(metaclass=ServerVerifierMeta):
         hash = hmac.new(secret_key, my_dict['secret_message'], hashlib.sha256)
         digest = hash.digest()
         dict_auth_response['digest'] = digest
-        for us in users.keys():
-            if us == user['user_name']:
-                usernames_auth.append(us)
-
-        if user['user_name'] in usernames_auth and users[user['user_name']] == user['password']:
+        password_to_check = user['password']
+        new_key = hashlib.pbkdf2_hmac('sha256', password_to_check.encode('utf-8'), user['user_name'].encode('utf-8'), 10000)
+        user_db_obj = session.query(Clients).filter_by(user_name=user['user_name']).first()
+        user_db_name = user_db_obj.user_name
+        user_db_password_key = user_db_obj.password
+        # for us in users.keys():
+        #     if us == user['user_name']:
+        #         usernames_auth.append(us)
+        if user_db_name == user['user_name'] and user_db_password_key == new_key:
             dict_auth_response['response'] = 200
             dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
             print('authenticate completed!')
@@ -387,6 +407,8 @@ def main():
                                 usernames_auth.remove(requests[sock]['user']['user_name'])
                                 break
                             server.presence_user(sock, sock)
+                        elif requests[sock]['action'] == 'registry':
+                            server.user_registry(requests[sock], sock)
                         elif requests[sock]['action'] == 'msg':
                             if requests[sock]['message'].upper() == 'Q':
                                 sock.send(pickle.dumps(requests[sock]))
@@ -396,7 +418,6 @@ def main():
                                 else:
                                     server.message_room_send(server.message_room(requests[sock], sock), w)
                         elif requests[sock]['action'] == 'logout':
-                            usernames_auth.remove(requests[sock]['from'])
                             sock.send(pickle.dumps({'action': 'quit'}))
                         elif requests[sock]['action'] == 'get_contacts':
                             server.get_contacts(requests[sock], sock)
@@ -418,6 +439,8 @@ if __name__ == '__main__':
         session = Session()
 
         storage = Storage()
+        # q_val = session.query(Clients).all()
+        # print(q_val)
         main()
     except Exception as e:
         print(e)
