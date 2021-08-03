@@ -78,4 +78,4 @@ class Ui_ClientWindow(object):
         self.SendMessageButton.setText(_translate("ClientWindow", "Отправить"))
         self.UserLable.setText(_translate("ClientWindow", "test"))
         self.SearchButton.setText(_translate("ClientWindow", "Search"))
-        self.ChatHedding.setText(_translate("ClientWindow", "TextLabel"))
+        self.ChatHedding.setText(_translate("ClientWindow", "ChatName"))

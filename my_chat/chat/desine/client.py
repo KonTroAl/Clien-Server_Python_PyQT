@@ -85,10 +85,13 @@ class ClientPage(QtWidgets.QDialog):
 
     def send_message(self):
         message = self.ui.EnterMessage.text()
-        # to = self.ui.ChatHedding.text()
+        to = self.ui.ChatHedding.text()
         user = self.ui.UserLable.text()
         if message:
-            self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
+            if to == 'ChatName':
+                self.ui.textBrowser.append('Choose chat from contact list!')
+            else:
+                self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
         self.ui.EnterMessage.clear()
 
     def choose_contact(self, item):
