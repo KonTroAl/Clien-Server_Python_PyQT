@@ -53,6 +53,7 @@ def client_log_dec(func):
     return call
 
 
+# декоратор login_required
 def login_required(func):
     @wraps(func)
     def call(*args, **kwargs):
@@ -117,6 +118,7 @@ class Client(metaclass=ClientVerifierMeta):
 
         return auth_data_loads
 
+    @login_required
     def user_presence(self):
         logger.info('start user_presence!')
         pre_data = self.s.recv(1024)
@@ -136,6 +138,7 @@ class Client(metaclass=ClientVerifierMeta):
         else:
             return 'error!'
 
+    @login_required
     def message_send_user(self, message, to):
         logger.info('start message_to_user!')
         message_dict = {
@@ -149,6 +152,7 @@ class Client(metaclass=ClientVerifierMeta):
 
         self.s.send(pickle.dumps(message_dict))
 
+    @login_required
     def get_contacts(self, username):
         contacts_dict = {
             "action": "get_contacts",
@@ -157,6 +161,7 @@ class Client(metaclass=ClientVerifierMeta):
         }
         self.s.send(pickle.dumps(contacts_dict))
 
+    @login_required
     def add_contacts(self, username, new_contact):
         new_contact_dict = {
             'action': 'add_contact',
@@ -166,6 +171,7 @@ class Client(metaclass=ClientVerifierMeta):
         }
         self.s.send(pickle.dumps(new_contact_dict))
 
+    @login_required
     def logout(self):
         logout_dict = {
             'action': 'logout',
@@ -299,7 +305,6 @@ def main():
                     'message': dict_signals[409]
                 }
                 print(auth_dict)
-            # client.user_auth(username, password)
             if client.user_auth(username, password)['response'] == 402:
                 break
 
