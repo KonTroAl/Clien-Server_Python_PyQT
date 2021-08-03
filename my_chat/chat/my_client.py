@@ -1,17 +1,11 @@
 from socket import socket, AF_INET, SOCK_STREAM
 import dis
-import time
 import pickle
 import logging
 from functools import wraps
 import datetime
 from threading import Thread
 import inspect
-
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
-
 
 logger = logging.getLogger('my_client')
 
@@ -55,6 +49,17 @@ def client_log_dec(func):
         res = func(*args, **kwargs)
         logger.info(f'{datetime.datetime.now()} Call {func.__name__}: {args}, {kwargs}')
         return res
+
+    return call
+
+
+def login_required(func):
+    @wraps(func)
+    def call(*args, **kwargs):
+        if len(usernames_auth) == 0:
+            return 'Error!'
+        else:
+            return func(*args, **kwargs)
 
     return call
 
@@ -361,4 +366,3 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         print(e)
-
