@@ -7,6 +7,7 @@ from functools import wraps
 import datetime
 import select
 import inspect
+import hashlib
 
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
