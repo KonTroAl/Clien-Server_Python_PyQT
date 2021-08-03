@@ -1,3 +1,4 @@
+import os
 from socket import socket, AF_INET, SOCK_STREAM
 import dis
 import pickle
@@ -6,6 +7,8 @@ from functools import wraps
 import datetime
 from threading import Thread
 import inspect
+import hashlib
+import hmac
 
 logger = logging.getLogger('my_client')
 
@@ -20,6 +23,8 @@ users = {
 usernames_auth = []
 room_names = ['#smalltalk']
 users_contacts = ['KonTroAll', 'test2', 'Julia', 'test']
+
+secret_key = b'test_test'
 
 dict_signals = {
     100: 'welcome!',
@@ -108,13 +113,17 @@ class Client(metaclass=ClientVerifierMeta):
                 'password': password
             }
         }
+        secret_message = os.urandom(32)
+        dict_auth['secret_message'] = secret_message
+        hash = hmac.new(secret_key, secret_message, hashlib.sha256)
+        digest = hash.digest()
         self.s.send(pickle.dumps(dict_auth))
         auth_data = self.s.recv(1024)
         auth_data_loads = pickle.loads(auth_data)
-        if auth_data_loads['response'] == 200:
+        if hmac.compare_digest(digest, auth_data_loads['digest']) and auth_data_loads['response'] == 200:
             usernames_auth.append(username)
         logger.info(auth_data_loads)
-        print('Сообщение от сервера: ', pickle.loads(auth_data), ', длиной ', len(auth_data), ' байт')
+        print(f"Сообщение от сервера: 'response': {auth_data_loads['response']}, 'alert': {auth_data_loads['alert']}, длиной {len(auth_data)} байт")
 
         return auth_data_loads
 
@@ -367,7 +376,8 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-    except Exception as e:
-        print(e)
+    main()
+    # try:
+    #     main()
+    # except Exception as e:
+    #     print(e)

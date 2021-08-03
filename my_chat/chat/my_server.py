@@ -1,3 +1,4 @@
+import hmac
 from socket import socket, AF_INET, SOCK_STREAM
 import dis
 import time
@@ -27,6 +28,7 @@ users = {
 
 usernames_auth = []
 room_names = ['#smalltalk']
+secret_key = b'test_test'
 
 dict_signals = {
     100: 'welcome!',
@@ -230,6 +232,9 @@ class Server(metaclass=ServerVerifierMeta):
 
         dict_auth_response = {}
         user = my_dict['user']
+        hash = hmac.new(secret_key, my_dict['secret_message'], hashlib.sha256)
+        digest = hash.digest()
+        dict_auth_response['digest'] = digest
         for us in users.keys():
             if us == user['user_name']:
                 usernames_auth.append(us)
