@@ -4,14 +4,6 @@ chat.desine package
 Submodules
 ----------
 
-chat.desine.admin module
-------------------------
-
-.. automodule:: chat.desine.admin
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 chat.desine.admin\_panel module
 -------------------------------
 
@@ -28,13 +20,6 @@ chat.desine.admin\_panel\_original module
    :undoc-members:
    :show-inheritance:
 
-chat.desine.client module
--------------------------
-
-.. automodule:: chat.desine.client
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 chat.desine.client\_page module
 -------------------------------
