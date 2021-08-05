@@ -10,16 +10,16 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('E:\Temp\programming\PyQt\HW\my_chat\chat'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'Chat_documentation'
-copyright = '2021, Konstantin Troshenkin'
-author = 'Konstantin Troshenkin'
+project = 'Chat Doc'
+copyright = '2021, Konstantin'
+author = 'Konstantin'
 
 
 # -- General configuration ---------------------------------------------------
@@ -28,6 +28,7 @@ author = 'Konstantin Troshenkin'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx.ext.autodoc'
 ]
 
 # Add any paths that contain templates here, relative to this directory.

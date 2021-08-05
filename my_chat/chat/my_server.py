@@ -14,7 +14,13 @@ import hashlib
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
+"""Приложение Сервера"""
 
+"""
+Данное приложение написано на языке Python. 
+Основная цель Сервера заключается в организации общения между пользователями чата.
+Вся основная логика написана в функции main().
+"""
 logger = logging.getLogger('my_server')
 
 timestamp = int(time.time())
@@ -47,6 +53,7 @@ dict_signals = {
     500: 'ошибка сервера'
 }
 
+"""Декораторы Сервера"""
 
 def server_log_dec(func):
     @wraps(func)
@@ -73,6 +80,7 @@ def read_requests(r_clients, all_clients):
 
     return responses
 
+"""Создание базы данных полной информации о пользователе."""
 
 Base = declarative_base()
 metadata = Base.metadata
@@ -165,6 +173,8 @@ class Storage:
         session.add(add_message)
         session.commit()
 
+
+"""Реализация функционала Сервера через ООП"""
 
 def find_forbidden_methods_call(func, method_names):
     for instr in dis.get_instructions(func):
@@ -371,6 +381,7 @@ class Server(metaclass=ServerVerifierMeta):
 
         return responses
 
+"""Основная логика приложения Сервера через функцию main()"""
 
 def main():
     server = Server()
