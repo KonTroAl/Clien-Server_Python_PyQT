@@ -12,5 +12,7 @@ def start_chat(n):
     while n > 0:
         subprocess.Popen('C:\programming\PyQT\HW\my_chat\chat\my_client.py', shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
-n = 2
-start_chat(n)
+
+if __name__ == '__main__':
+    n = 2
+    start_chat(n)
