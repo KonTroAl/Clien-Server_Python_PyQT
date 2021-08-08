@@ -2,8 +2,8 @@ import sys
 from queue import Queue
 import datetime
 
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import importlib.util
 import importlib
@@ -36,10 +36,13 @@ class ContactsFinder:
         self.user = user
 
     def find_contacts(self):
-        id_user = session.query(my_server.Clients).filter_by(user_name=self.user).first()
-        user_contact_id = session.query(my_server.ClientContacts).filter_by(id_owner=id_user.id).all()
+        id_user = session.query(my_server.Clients).filter_by(
+            user_name=self.user).first()
+        user_contact_id = session.query(my_server.ClientContacts).filter_by(
+            id_owner=id_user.id).all()
         for i in user_contact_id:
-            contact_name = session.query(my_server.Clients).filter_by(id=i.__dict__['id_client']).first()
+            contact_name = session.query(my_server.Clients).filter_by(
+                id=i.__dict__['id_client']).first()
             if self.res_queue is not None:
                 self.res_queue.put(contact_name.user_name)
         if self.res_queue is not None:
@@ -91,7 +94,9 @@ class ClientPage(QtWidgets.QDialog):
             if to == 'ChatName':
                 self.ui.textBrowser.append('Choose chat from contact list!')
             else:
-                self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
+                self.ui.textBrowser.append(f'{user}'
+                                           f' ({datetime.datetime.now()}): '
+                                           f'{message}')
         self.ui.EnterMessage.clear()
 
     def choose_contact(self, item):
@@ -108,12 +113,14 @@ class ClientPage(QtWidgets.QDialog):
         self.contacts_list.show_contacts()
 
         self.ui.SearchButton.setAutoDefault(True)
-        self.ui.FinderContacts.returnPressed.connect(self.ui.SearchButton.click)
+        self.ui.FinderContacts.returnPressed.connect(
+            self.ui.SearchButton.click)
 
         self.ui.ContactsList.itemDoubleClicked.connect(self.choose_contact)
 
         self.ui.SendMessageButton.setAutoDefault(True)
-        self.ui.EnterMessage.returnPressed.connect(self.ui.SendMessageButton.click)
+        self.ui.EnterMessage.returnPressed.connect(
+            self.ui.SendMessageButton.click)
 
 
 if __name__ == '__main__':
