@@ -52,7 +52,8 @@ def client_log_dec(func):
     @wraps(func)
     def call(*args, **kwargs):
         res = func(*args, **kwargs)
-        logger.info(f'{datetime.datetime.now()} Call {func.__name__}: {args}, {kwargs}')
+        logger.info(f'{datetime.datetime.now()} '
+                    f'Call {func.__name__}: {args}, {kwargs}')
         return res
 
     return call
@@ -83,11 +84,15 @@ class ClientVerifierMeta(type):
     def __init__(self, name, bases, class_dict):
         for key, val in class_dict.items():
             if inspect.isfunction(val):
-                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                method_name = \
+                    find_forbidden_methods_call(val,
+                                                self.forbidden_method_names)
                 if method_name:
-                    raise ValueError(f'called forbidden method "{method_name}"')
+                    raise ValueError(f'called forbidden method '
+                                     f'"{method_name}"')
             elif isinstance(val, socket):
-                raise ValueError('Socket object cannot be defined in class definition')
+                raise ValueError('Socket object cannot be defined '
+                                 'in class definition')
 
         super(ClientVerifierMeta, self).__init__(name, bases, class_dict)
 
@@ -135,11 +140,15 @@ class Client(metaclass=ClientVerifierMeta):
         self.s.send(pickle.dumps(dict_auth))
         auth_data = self.s.recv(1024)
         auth_data_loads = pickle.loads(auth_data)
-        if hmac.compare_digest(digest, auth_data_loads['digest']) and auth_data_loads['response'] == 200:
+        if hmac.compare_digest(digest, auth_data_loads['digest']) \
+                and auth_data_loads['response'] == 200:
             usernames_auth.append(username)
         logger.info(auth_data_loads)
         print(
-            f"Сообщение от сервера: 'response': {auth_data_loads['response']}, 'alert': {auth_data_loads['alert']}, длиной {len(auth_data)} байт")
+            f"Сообщение от сервера: "
+            f"'response': {auth_data_loads['response']}, "
+            f"'alert': {auth_data_loads['alert']}, "
+            f"длиной {len(auth_data)} байт")
 
         return auth_data_loads
 
@@ -206,6 +215,7 @@ class Client(metaclass=ClientVerifierMeta):
         self.s.send(pickle.dumps(logout_dict))
         return logout_dict
 
+
 def message_recv(s):
     while True:
         message_data = s.recv(1024)
@@ -215,11 +225,15 @@ def message_recv(s):
         elif message_data_load['message'] == 'get_contacts':
             print(f"Ваш список контактов: {message_data_load['alert']}")
         elif message_data_load['message'] == 'add_contact':
-            print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
+            print('Сообщение от сервера: ',
+                  message_data_load, ', длиной ', len(message_data), ' байт')
         elif message_data_load['message'] == 'add_group':
-            print('Сообщение от сервера: ', message_data_load, ', длиной ', len(message_data), ' байт')
+            print('Сообщение от сервера: ',
+                  message_data_load, ', длиной ', len(message_data), ' байт')
         else:
-            print(f'{message_data_load["to"]} from {message_data_load["from"]}: {message_data_load["message"]}')
+            print(f'{message_data_load["to"]} from '
+                  f'{message_data_load["from"]}: '
+                  f'{message_data_load["message"]}')
         logger.info(message_data_load)
 
 
@@ -244,7 +258,9 @@ def main():
     client.start_connection(HOST, PORT, s)
 
     while True:
-        start = input('Добро пожаловать! Для авторизации введите "A": , Для регистрации введите "R": , Для выхода введите "Q": ')
+        start = input(
+            'Добро пожаловать! Для авторизации введите "A": , '
+            'Для регистрации введите "R": , Для выхода введите "Q": ')
         if start.upper() == 'A':
             username = input('Enter your login: ')
             password = input('Enter your password: ')
@@ -264,15 +280,25 @@ def main():
             msg.start()
             while True:
                 user_choice = input(
-                    "Введите, что вы хотите сделать (К/Показать список контактов, ДК/Добавить новый контакт, П/Отправить сообщение пользователю, Г/Отправить группе, ВГ/Вступить в группу). Чтобы выйти введите: 'Q': ")
+                    "Введите, что вы хотите сделать "
+                    "(К/Показать список контактов, "
+                    "ДК/Добавить новый контакт, "
+                    "П/Отправить сообщение пользователю, "
+                    "Г/Отправить группе, ВГ/Вступить в группу). "
+                    "Чтобы выйти введите: 'Q': ")
 
                 if user_choice.upper() == 'ВГ':
-                    to = input('Введите имя группы (Ввод должен начинаться с #, Пример:#5556): ')
+                    to = input('Введите имя группы '
+                               '(Ввод должен начинаться с #, Пример:#5556): ')
                     if to not in room_names:
-                        a = input("Группа найдена не была, хотите создать группу с таким именем? (Y / N): ")
+                        a = input("Группа найдена не была, "
+                                  "хотите создать группу с таким именем? "
+                                  "(Y / N): ")
                         if a.upper() == 'Y':
                             room_names.append(to)
-                            s.send(pickle.dumps({'action': 'add_group', 'room_name': to}))
+                            s.send(pickle.dumps(
+                                {'action': 'add_group', 'room_name': to})
+                            )
                             msg.join(timeout=1)
                 elif user_choice.upper() == 'П':
                     to = input('Кому отправить сообщение: ')
@@ -308,7 +334,9 @@ def main():
             quit_data = s.recv(1024)
             logger.info(pickle.loads(quit_data))
             usernames_auth.clear()
-            print('Сообщение от сервера: ', pickle.loads(quit_data), ', длиной ', len(quit_data), ' байт \n')
+            print('Сообщение от сервера: ',
+                  pickle.loads(quit_data), ', длиной ',
+                  len(quit_data), ' байт \n')
         elif start.upper() == 'R':
             login = input('Enter your login: ')
             info = input('Enter some info about yourself: ')
