@@ -1,5 +1,4 @@
 import hmac
-import os
 from socket import socket, AF_INET, SOCK_STREAM
 import dis
 import time
@@ -11,16 +10,18 @@ import select
 import inspect
 import hashlib
 
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
-"""Приложение Сервера"""
+from sqlalchemy import create_engine, Column, Integer, String, \
+    ForeignKey, Text, Time
 
-"""
-Данное приложение написано на языке Python. 
-Основная цель Сервера заключается в организации общения между пользователями чата.
+"""Приложение Сервера
+Данное приложение написано на языке Python.
+Основная цель Сервера заключается в
+организации общения между пользователями чата.
 Вся основная логика написана в функции main().
 """
+
 logger = logging.getLogger('my_server')
 
 timestamp = int(time.time())
@@ -55,11 +56,13 @@ dict_signals = {
 
 """Декораторы Сервера"""
 
+
 def server_log_dec(func):
     @wraps(func)
     def call(*args, **kwargs):
         res = func(*args, **kwargs)
-        logger.info(f'{datetime.datetime.now()} Call {func.__name__}: {args}, {kwargs}')
+        logger.info(f'{datetime.datetime.now()} '
+                    f'Call {func.__name__}: {args}, {kwargs}')
         return res
 
     return call
@@ -74,11 +77,13 @@ def read_requests(r_clients, all_clients):
         try:
             data = pickle.loads(sock.recv(1024))
             responses[sock] = data
-        except:
-            print('Клиент {} {} отключился'.format(sock.fileno(), sock.getpeername()))
+        except ValueError:
+            print('Клиент {} {} отключился'.format(sock.fileno(),
+                                                   sock.getpeername()))
             all_clients.remove(sock)
 
     return responses
+
 
 """Создание базы данных полной информации о пользователе."""
 
@@ -114,14 +119,17 @@ class ClientHistory(Base):
         self.user_id = user_id
 
     def __repr__(self):
-        return "<ClientHistory('%s', '%s', '%s')>" % (self.login_time, self.ip_address, self.user_id)
+        return "<ClientHistory('%s', '%s', '%s')>" % \
+               (self.login_time, self.ip_address, self.user_id)
 
 
 class ClientContacts(Base):
     __tablename__ = 'client_contacts'
     id = Column(Integer, nullable=False, primary_key=True, autoincrement=True)
-    id_owner = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False, index=True)
-    id_client = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False, index=True)
+    id_owner = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'),
+                      nullable=False, index=True)
+    id_client = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'),
+                       nullable=False, index=True)
 
     def __init__(self, id_owner, id_client):
         self.id_owner = id_owner
@@ -133,10 +141,13 @@ class ClientContacts(Base):
 
 class ClientMessageHistory(Base):
     __tablename__ = 'client_message_history'
-    message_id = Column(Integer, nullable=False, primary_key=True, autoincrement=True)
+    message_id = Column(Integer, nullable=False, primary_key=True,
+                        autoincrement=True)
     user_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
-    recipient_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
+    recipient_id = Column(Integer, ForeignKey('clients.id',
+                                              ondelete='CASCADE'))
     user_message = Column(Text)
+
     # Clients = relationship('Clients', back_populates='ClientMessageHistory')
 
     def __init__(self, user_id, recipient_id, user_message):
@@ -145,14 +156,17 @@ class ClientMessageHistory(Base):
         self.user_message = user_message
 
     def __repr__(self):
-        return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
+        return "From '%s' to '%s': '%s'" %\
+               (self.user_id, self.recipient_id, self.user_message)
 
 
 class Storage:
 
     def add_user_contacts(self, user, contact):
         id_user = session.query(Clients).filter_by(user_name=user).first()
-        id_contact = session.query(Clients).filter_by(user_name=contact).first()
+        id_contact = session.query(Clients).filter_by(
+            user_name=contact
+        ).first()
         add_contact = ClientContacts(id_user.id, id_contact.id)
         session.add(add_contact)
         session.commit()
@@ -160,15 +174,21 @@ class Storage:
     def get_contacts(self, user):
         user_contact = []
         id_user = session.query(Clients).filter_by(user_name=user).first()
-        user_contact_id = session.query(ClientContacts).filter_by(id_owner=id_user.id).all()
+        user_contact_id = session.query(ClientContacts).filter_by(
+            id_owner=id_user.id
+        ).all()
         for i in user_contact_id:
-            contact_name = session.query(Clients).filter_by(id=i.__dict__['id_client']).first()
+            contact_name = session.query(Clients).filter_by(
+                id=i.__dict__['id_client']
+            ).first()
             user_contact.append(contact_name.user_name)
         return user_contact
 
     def message(self, user, contact, message):
         id_user = session.query(Clients).filter_by(user_name=user).first()
-        id_contact = session.query(Clients).filter_by(user_name=contact).first()
+        id_contact = session.query(Clients).filter_by(
+            user_name=contact
+        ).first()
         add_message = ClientMessageHistory(id_user, id_contact, message)
         session.add(add_message)
         session.commit()
@@ -176,9 +196,11 @@ class Storage:
 
 """Реализация функционала Сервера через ООП"""
 
+
 def find_forbidden_methods_call(func, method_names):
     for instr in dis.get_instructions(func):
-        if instr.opname == 'LOAD_METHOD' and instr.argval in method_names:
+        if instr.opname == 'LOAD_METHOD'\
+                and instr.argval in method_names:
             return instr.argval
 
 
@@ -188,9 +210,11 @@ class ServerVerifierMeta(type):
     def __init__(self, name, bases, class_dict):
         for key, val in class_dict.items():
             if inspect.isfunction(val):
-                method_name = find_forbidden_methods_call(val, self.forbidden_method_names)
+                method_name = find_forbidden_methods_call(
+                    val, self.forbidden_method_names)
                 if method_name:
-                    raise ValueError(f'called forbidden method "{method_name}"')
+                    raise ValueError(
+                        f'called forbidden method "{method_name}"')
 
         super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
 
@@ -242,14 +266,17 @@ class Server(metaclass=ServerVerifierMeta):
         user = my_dict['user']
         password = user['password']
         salt = user['username']
-        key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 10000)
+        key = hashlib.pbkdf2_hmac(
+            'sha256', password.encode('utf-8'),
+            salt.encode('utf-8'), 10000)
         add_user = Clients(user['username'], key, user['info'])
         session.add(add_user)
         session.commit()
         q_val = session.query(Clients).all()
         print(q_val)
         dict_reg_response['response'] = 200
-        dict_reg_response['alert'] = dict_signals[dict_reg_response['response']]
+        dict_reg_response['alert'] = dict_signals[
+            dict_reg_response['response']]
         sock.send(pickle.dumps(dict_reg_response))
 
     def user_authenticate(self, my_dict, sock):
@@ -262,23 +289,27 @@ class Server(metaclass=ServerVerifierMeta):
         digest = hash.digest()
         dict_auth_response['digest'] = digest
         password_to_check = user['password']
-        new_key = hashlib.pbkdf2_hmac('sha256', password_to_check.encode('utf-8'), user['user_name'].encode('utf-8'), 10000)
-        user_db_obj = session.query(Clients).filter_by(user_name=user['user_name']).first()
+        new_key = hashlib.pbkdf2_hmac('sha256',
+                                      password_to_check.encode('utf-8'),
+                                      user['user_name'].encode('utf-8'),
+                                      10000)
+        user_db_obj = session.query(Clients).filter_by(
+            user_name=user['user_name']).first()
         user_db_name = user_db_obj.user_name
         user_db_password_key = user_db_obj.password
-        # for us in users.keys():
-        #     if us == user['user_name']:
-        #         usernames_auth.append(us)
-        if user_db_name == user['user_name'] and user_db_password_key == new_key:
+        if user_db_name == user['user_name']\
+                and user_db_password_key == new_key:
             dict_auth_response['response'] = 200
-            dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
+            dict_auth_response['alert'] =\
+                dict_signals[dict_auth_response['response']]
             print('authenticate completed!')
             logger.info('authenticate completed!')
             sock.send(pickle.dumps(dict_auth_response))
             return dict_auth_response
         else:
             dict_auth_response['response'] = 402
-            dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
+            dict_auth_response['alert'] =\
+                dict_signals[dict_auth_response['response']]
             print('error!')
             logger.info('error!')
             sock.send(pickle.dumps(dict_auth_response))
@@ -294,7 +325,9 @@ class Server(metaclass=ServerVerifierMeta):
 
         pre_data = client.recv(1024)
         pre_data_load = pickle.loads(pre_data)
-        print('Сообщение от клиента: ', pre_data_load, ', длиной ', len(pre_data), ' байт')
+        print('Сообщение от клиента: ',
+              pre_data_load, ', длиной ',
+              len(pre_data), ' байт')
         return pre_data_load['action']
 
     def message_send(self, my_dict, sock):
@@ -313,7 +346,9 @@ class Server(metaclass=ServerVerifierMeta):
                     print('message send!')
                     logger.info('message send!')
                     sock.send(pickle.dumps(msg_dict))
-                    storage.message(my_dict['from'], my_dict['to'], my_dict['message'])
+                    storage.message(my_dict['from'],
+                                    my_dict['to'],
+                                    my_dict['message'])
                     return msg_dict
                 else:
                     msg_dict['response'] = 404
@@ -358,7 +393,8 @@ class Server(metaclass=ServerVerifierMeta):
         sock.send(pickle.dumps(contacts_dict))
 
     def add_contacts(self, my_dict, sock):
-        storage.add_user_contacts(my_dict['user_name'], my_dict['new_contact'])
+        storage.add_user_contacts(my_dict['user_name'],
+                                  my_dict['new_contact'])
         contacts_dict = {
             'response': 200,
             'alert': dict_signals[200],
@@ -375,13 +411,16 @@ class Server(metaclass=ServerVerifierMeta):
             try:
                 data = pickle.loads(sock.recv(1024))
                 responses[sock] = data
-            except:
-                print('Клиент {} {} отключился'.format(sock.fileno(), sock.getpeername()))
+            except ValueError:
+                print('Клиент {} {} отключился'.format(
+                    sock.fileno(), sock.getpeername()))
                 all_clients.remove(sock)
 
         return responses
 
+
 """Основная логика приложения Сервера через функцию main()"""
+
 
 def main():
     server = Server()
@@ -394,18 +433,20 @@ def main():
     while True:
         try:
             server.accept_request()
-        except OSError as e:
+        except OSError:
             pass
         else:
-            print("Получен запрос на соединение от %s" % str(server.addr_return()))
+            print("Получен запрос на соединение от %s"
+                  % str(server.addr_return()))
             clients.append(server.client_return())
 
         finally:
             r = []
             w = []
             try:
-                r, w, e = select.select(clients, clients, [])
-            except:
+                r, w, e = select.select(
+                    clients, clients, [])
+            except ValueError:
                 pass
 
             requests = read_requests(r, clients)
@@ -413,9 +454,11 @@ def main():
                 for sock in w:
                     if sock in requests:
                         if requests[sock]['action'] == 'authenticate':
-                            auth = server.user_authenticate(requests[sock], sock)['response']
+                            auth = server.user_authenticate(
+                                requests[sock], sock)['response']
                             if auth == 402:
-                                usernames_auth.remove(requests[sock]['user']['user_name'])
+                                usernames_auth.remove(
+                                    requests[sock]['user']['user_name'])
                                 break
                             server.presence_user(sock, sock)
                         elif requests[sock]['action'] == 'registry':
@@ -427,7 +470,9 @@ def main():
                                 if requests[sock]['to'][0].isalpha():
                                     server.message_send(requests[sock], sock)
                                 else:
-                                    server.message_room_send(server.message_room(requests[sock], sock), w)
+                                    server.message_room_send(
+                                        server.message_room(
+                                            requests[sock], sock), w)
                         elif requests[sock]['action'] == 'logout':
                             sock.send(pickle.dumps({'action': 'quit'}))
                         elif requests[sock]['action'] == 'get_contacts':
@@ -437,12 +482,15 @@ def main():
                         elif requests[sock]['action'] == 'add_group':
                             room_names.append(requests[sock]['room_name'])
                             sock.send(
-                                pickle.dumps({'response': 200, 'alert': dict_signals[200], 'message': 'add_group'}))
+                                pickle.dumps({'response': 200,
+                                              'alert': dict_signals[200],
+                                              'message': 'add_group'}))
 
 
 if __name__ == '__main__':
     try:
-        engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
+        engine = create_engine(
+            'sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
         Session = sessionmaker(bind=engine)
         Session.configure(bind=engine)
 
