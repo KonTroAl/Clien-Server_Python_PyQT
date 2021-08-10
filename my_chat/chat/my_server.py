@@ -8,11 +8,9 @@ import datetime
 import select
 import inspect
 
-
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, Text, Time
-
 
 logger = logging.getLogger('my_server')
 
@@ -167,11 +165,6 @@ def read_requests(r_clients, all_clients):
     return responses
 
 
-
-engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
-Session = sessionmaker(bind=engine)
-Session.configure(bind=engine)
-
 Base = declarative_base()
 metadata = Base.metadata
 
@@ -238,15 +231,15 @@ class ClientMessageHistory(Base):
         return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
 
 
-metadata.create_all(engine)
+def main_db(dialect_driver='sqlite', db_name='sqlite3.db'):
+    # sqlite3.db
+    engine = create_engine(f'{dialect_driver}:///{db_name}', echo=True, pool_recycle=7200)
+    Session = sessionmaker(bind=engine)
+    Session.configure(bind=engine)
+    metadata.create_all(engine)
+    session = Session()
 
-session = Session()
-
-
-# admin_user = Clients('KonTroAll', 'SpaceShip007', 'main admin')
-# session.add(admin_user)
-# session.commit()
-# q_user = session.query(Clients).all()
+    return session
 
 
 class Storage:
@@ -295,7 +288,6 @@ class ServerVerifierMeta(type):
                     raise ValueError(f'called forbidden method "{method_name}"')
 
         super(ServerVerifierMeta, self).__init__(name, bases, class_dict)
-
 
 
 class PortVerifier:
@@ -463,10 +455,10 @@ class Server(metaclass=ServerVerifierMeta):
         return responses
 
 
-def main():
+def main(port):
     server = Server()
     server.create_socket()
-    server.start_server()
+    server.start_server(int(port))
 
     logger.info('start connection!')
     clients = []
@@ -521,6 +513,10 @@ def main():
 
 if __name__ == '__main__':
     try:
-        main()
+        # dialect_driver = 'sqlite'
+        # db_name = 'sqlite3.db'
+        session = main_db()
+        port = input("Enter port number for connection: ")
+        main(port)
     except Exception as e:
         print(e)
