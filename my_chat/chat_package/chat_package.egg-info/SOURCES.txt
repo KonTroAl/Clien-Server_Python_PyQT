@@ -1,0 +1,11 @@
+setup.py
+chat_package.egg-info/PKG-INFO
+chat_package.egg-info/SOURCES.txt
+chat_package.egg-info/dependency_links.txt
+chat_package.egg-info/top_level.txt
+src/admin.py
+src/admin_panel.py
+src/client.py
+src/client_page.py
+src/my_client.py
+src/my_server.py
