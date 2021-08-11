@@ -48,7 +48,7 @@ class AdminDialog(QtWidgets.QDialog):
     def start_connection(self):
 
         if not self.start_db:
-            self.
+            pass
 
         self.ui.PortConnectionButton.setEnabled(True)
 
