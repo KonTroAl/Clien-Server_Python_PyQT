@@ -182,7 +182,7 @@ class Clients(Base):
         self.info = info
 
     def __repr__(self):
-        return "<Client('%s', '%s')>" % (self.user_name, self.info)
+        return "User: '%s'; Info: '%s'" % (self.user_name, self.info)
 
 
 class ClientHistory(Base):
@@ -220,7 +220,7 @@ class ClientMessageHistory(Base):
     user_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
     recipient_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
     user_message = Column(Text)
-    Clients = relationship('Clients', back_populates='ClientMessageHistory')
+    # Clients = relationship('Clients', back_populates='ClientMessageHistory')
 
     def __init__(self, user_id, recipient_id, user_message):
         self.user_id = user_id

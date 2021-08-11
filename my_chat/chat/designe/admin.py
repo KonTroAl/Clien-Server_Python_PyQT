@@ -28,8 +28,8 @@ class AdminDialog(QtWidgets.QDialog):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.PortConnectionButton.clicked.connect(self.start_connection)
-        self.ui.PortConnectionButton.setEnabled(False)
-        self.ui.DBConnectionButton.clicked.connect(self.start_connection)
+        # self.ui.PortConnectionButton.setEnabled(False)
+        # self.ui.DBConnectionButton.clicked.connect(self.start_connection)
 
         self.start = None
         self.start_db = False
@@ -46,14 +46,22 @@ class AdminDialog(QtWidgets.QDialog):
         session = my_server.main_db(dialect, name_db)
         return session
 
-    def start_connection(self):
+    def show_clients(self, session):
+        clients = session.query(my_server.Clients).all()
+        # print(clients[0])
+        for client in clients:
+            self.ui.ClientsList.append(str(client))
 
+    def start_connection(self):
         self.start = Thread(target=self.start_server)
         self.start.daemon = True
         self.start.start()
 
         self.start_db = self.start_DB()
-        self.ui.PortConnectionButton.setEnabled(True)
+        # self.ui.PortConnectionButton.setEnabled(True)
+
+        self.show_clients(self.start_db)
+        self.start.join(timeout=1)
 
 
 if __name__ == '__main__':
