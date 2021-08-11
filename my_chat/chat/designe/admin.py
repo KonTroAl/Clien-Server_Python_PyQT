@@ -1,6 +1,7 @@
 import sys
 import multiprocessing
 from threading import Thread
+import datetime
 
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
@@ -28,8 +29,6 @@ class AdminDialog(QtWidgets.QDialog):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.PortConnectionButton.clicked.connect(self.start_connection)
-        # self.ui.PortConnectionButton.setEnabled(False)
-        # self.ui.DBConnectionButton.clicked.connect(self.start_connection)
 
         self.start = None
         self.start_db = False
@@ -48,9 +47,17 @@ class AdminDialog(QtWidgets.QDialog):
 
     def show_clients(self, session):
         clients = session.query(my_server.Clients).all()
-        # print(clients[0])
         for client in clients:
             self.ui.ClientsList.append(str(client))
+
+    def show_clients_statistic(self, session):
+        clients = session.query(my_server.Clients).all()
+        for client in clients:
+            # print(client.__dict__)
+            user = session.query(my_server.Clients).filter_by(user_name=client.__dict__['user_name']).first()
+            user_id = user.id
+            client_history = session.query(my_server.ClientHistory).filter_by(user_id=user_id).first()
+            self.ui.ClientsStatistic.append(str(client_history))
 
     def start_connection(self):
         self.start = Thread(target=self.start_server)
@@ -58,9 +65,9 @@ class AdminDialog(QtWidgets.QDialog):
         self.start.start()
 
         self.start_db = self.start_DB()
-        # self.ui.PortConnectionButton.setEnabled(True)
 
         self.show_clients(self.start_db)
+        self.show_clients_statistic(self.start_db)
         self.start.join(timeout=1)
 
 

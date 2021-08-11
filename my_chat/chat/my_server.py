@@ -182,7 +182,7 @@ class Clients(Base):
         self.info = info
 
     def __repr__(self):
-        return "User: '%s'; Info: '%s'" % (self.user_name, self.info)
+        return "'%s'" % (self.user_name)
 
 
 class ClientHistory(Base):
