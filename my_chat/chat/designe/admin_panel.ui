@@ -33,16 +33,6 @@
      <string notr="true">background-color: rgb(255, 255, 255);</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="PortTextBox">
-    <property name="geometry">
-     <rect>
-      <x>145</x>
-      <y>390</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="HeddingClientList">
     <property name="geometry">
      <rect>
@@ -156,7 +146,7 @@
    <widget class="QPushButton" name="PortConnectionButton">
     <property name="geometry">
      <rect>
-      <x>145</x>
+      <x>350</x>
       <y>440</y>
       <width>100</width>
       <height>30</height>
@@ -198,25 +188,6 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QPushButton" name="DBConnectionButton">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>440</y>
-      <width>100</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Подключиться</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="DialectDB">
     <property name="geometry">
      <rect>
@@ -234,16 +205,6 @@
     </property>
     <property name="text">
      <string>Имя базы данных</string>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="DialectDBTextBox">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>390</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
     </property>
    </widget>
    <widget class="QLabel" name="NameDb">
@@ -268,7 +229,27 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QTextEdit" name="NsmeDBTextBox">
+   <widget class="QComboBox" name="DialectDBComboBox">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>390</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>sqlite</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>mySQL</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLineEdit" name="NameDBTextBox">
     <property name="geometry">
      <rect>
       <x>620</x>
@@ -278,8 +259,26 @@
      </rect>
     </property>
    </widget>
+   <widget class="QLineEdit" name="PortTextBox">
+    <property name="geometry">
+     <rect>
+      <x>145</x>
+      <y>390</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>PortTextBox</tabstop>
+  <tabstop>DialectDBComboBox</tabstop>
+  <tabstop>NameDBTextBox</tabstop>
+  <tabstop>PortConnectionButton</tabstop>
+  <tabstop>ClientsList</tabstop>
+  <tabstop>ClientsStatistic</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

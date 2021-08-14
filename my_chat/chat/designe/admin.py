@@ -10,7 +10,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from admin_panel import Ui_MainWindow
-import client
 
 
 def module_from_file(module_name, file_path):
@@ -41,7 +40,7 @@ class AdminDialog(QtWidgets.QDialog):
         return start
 
     def start_DB(self):
-        dialect = self.ui.DialectDBTextBox.text()
+        dialect = self.ui.DialectDBComboBox.currentText()
         name_db = self.ui.NameDBTextBox.text()
         engine = create_engine(f'{dialect}:///../{name_db}', echo=True, pool_recycle=7200)
         Session = sessionmaker(bind=engine)

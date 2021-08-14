@@ -97,6 +97,10 @@ class ClientPage(QtWidgets.QDialog):
         return s
 
     def send_message(self):
+        """
+        Без запуска приложения admin.py любая попытка отправить сообщение приведет к ошибке,
+        т.к. сервер не будет запущен для обработки запроса пользователя
+        """
         s = self.start_server()
         message = self.ui.EnterMessage.text()
         to = self.ui.ChatHedding.text()
