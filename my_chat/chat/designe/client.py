@@ -2,8 +2,8 @@ import sys
 from queue import Queue
 import datetime
 
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import importlib.util
 import importlib
@@ -12,6 +12,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from client_page import Ui_ClientWindow
+import pickle
+
+timestamp = datetime.datetime.now()
 
 
 def module_from_file(module_name, file_path):
@@ -22,6 +25,7 @@ def module_from_file(module_name, file_path):
 
 
 my_server = module_from_file('my_server', '../my_server.py')
+my_client = module_from_file('my_client', '../my_client.py')
 
 engine = create_engine('sqlite:///../sqlite3.db', echo=True, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
@@ -66,6 +70,7 @@ class ClientContactsView(QObject):
             self.res_queue.task_done()
         self.res_queue.task_done()
         self.gotData.emit(user_contacts)
+        return user_contacts
 
 
 class ClientPage(QtWidgets.QDialog):
@@ -83,14 +88,47 @@ class ClientPage(QtWidgets.QDialog):
         for i in data:
             self.ui.ContactsList.addItem(i)
 
+    def start_server(self):
+        HOST = 'localhost'
+        PORT = 7777
+        client = my_client.Client()
+        s = client.create_socket()
+        client.start_connection(HOST, PORT, s)
+        return s
+
     def send_message(self):
+        """
+        Без запуска приложения admin.py любая попытка отправить сообщение приведет к ошибке,
+        т.к. сервер не будет запущен для обработки запроса пользователя
+        """
+        s = self.start_server()
         message = self.ui.EnterMessage.text()
         to = self.ui.ChatHedding.text()
-        user = self.ui.UserLable.text()
+        contact = session.query(my_server.Clients).filter_by(user_name=to).first()
+        contact_id = contact.id
+        user_lable = self.ui.UserLable.text()
+        user = session.query(my_server.Clients).filter_by(user_name=user_lable).first()
+        id_user = user.id
         if message:
             if to == 'ChatName':
                 self.ui.textBrowser.append('Choose chat from contact list!')
             else:
+                message_dict = {
+                    'action': 'msg',
+                    'time': timestamp,
+                    'to': to,
+                    'from': user,
+                    'encoding': 'utf-8',
+                    'message': message
+                }
+                """
+                Нижняя строка пока будет закомментирована, 
+                до реализации функционала авторизации пользователя на сервере 
+                """
+                add_message = my_server.ClientMessageHistory(id_user, contact_id, str(message), str(timestamp))
+                session.add(add_message)
+                session.commit()
+                # s.send(pickle.dumps(message_dict))
                 self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
         self.ui.EnterMessage.clear()
 
@@ -98,8 +136,23 @@ class ClientPage(QtWidgets.QDialog):
         self.ui.ChatHedding.setText(item.text())
 
     def add_contact(self):
-        contact = self.ui.FinderContacts.text()
-        self.ui.ContactsList.addItem(contact)
+        user_name = self.ui.UserLable.text()
+        user = session.query(my_server.Clients).filter_by(user_name=user_name).first()
+        id_user = user.id
+        contact_name = self.ui.FinderContacts.text()
+        contact = session.query(my_server.Clients).filter_by(user_name=contact_name).first()
+        contact_id = contact.id
+        ContactList_items = self.ui.ContactsList
+        items = []
+        for i in range(ContactList_items.count()):
+            items.append(ContactList_items.item(i).text())
+        if id_user == contact_id or contact_name in items:
+            print('Error!')
+        else:
+            add_contact = my_server.ClientContacts(id_user, contact_id)
+            session.add(add_contact)
+            session.commit()
+            self.ui.ContactsList.addItem(contact_name)
         self.ui.FinderContacts.clear()
 
     def start_client(self):
@@ -117,9 +170,6 @@ class ClientPage(QtWidgets.QDialog):
 
 
 if __name__ == '__main__':
-    # test_val = ClientContactsView('test')
-    # test_val.show_contacts()
-
     app = QtWidgets.QApplication(sys.argv)
     client_page = ClientPage()
     client_page.start_client()

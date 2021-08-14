@@ -129,6 +129,8 @@ class ClientMessageHistory(Base):
     user_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
     recipient_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
     user_message = Column(Text)
+    send_time = Column(String)
+
     # Clients = relationship('Clients', back_populates='ClientMessageHistory')
 
     def __init__(self, user_id, recipient_id, user_message):
@@ -138,6 +140,17 @@ class ClientMessageHistory(Base):
 
     def __repr__(self):
         return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
+
+
+def main_db(dialect_driver='sqlite', db_name='sqlite3.db'):
+    # sqlite3.db
+    engine = create_engine(f'{dialect_driver}:///{db_name}', echo=True, pool_recycle=7200)
+    Session = sessionmaker(bind=engine)
+    Session.configure(bind=engine)
+    metadata.create_all(engine)
+    session = Session()
+
+    return session
 
 
 class Storage:
@@ -164,6 +177,9 @@ class Storage:
         add_message = ClientMessageHistory(id_user, id_contact, message)
         session.add(add_message)
         session.commit()
+
+
+storage = Storage()
 
 
 def find_forbidden_methods_call(func, method_names):
@@ -252,7 +268,8 @@ class Server(metaclass=ServerVerifierMeta):
         digest = hash.digest()
         dict_auth_response['digest'] = digest
         password_to_check = user['password']
-        new_key = hashlib.pbkdf2_hmac('sha256', password_to_check.encode('utf-8'), user['user_name'].encode('utf-8'), 10000)
+        new_key = hashlib.pbkdf2_hmac('sha256', password_to_check.encode('utf-8'), user['user_name'].encode('utf-8'),
+                                      10000)
         user_db_obj = session.query(Clients).filter_by(user_name=user['user_name']).first()
         user_db_name = user_db_obj.user_name
         user_db_password_key = user_db_obj.password
@@ -431,16 +448,7 @@ def main():
 
 if __name__ == '__main__':
     try:
-        engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
-        Session = sessionmaker(bind=engine)
-        Session.configure(bind=engine)
-
-        metadata.create_all(engine)
-        session = Session()
-
-        storage = Storage()
-        # q_val = session.query(Clients).all()
-        # print(q_val)
+        session = main_db()
         main()
     except Exception as e:
         print(e)
