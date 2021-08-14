@@ -1,7 +1,6 @@
 import sys
 from threading import Thread
 
-
 from PyQt5 import QtWidgets
 
 import importlib.util
@@ -22,8 +21,6 @@ def module_from_file(module_name, file_path):
 
 
 my_server = module_from_file('my_server', '../my_server.py')
-
-
 
 
 class AdminDialog(QtWidgets.QDialog):

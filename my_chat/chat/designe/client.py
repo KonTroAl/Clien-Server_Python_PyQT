@@ -2,7 +2,7 @@ import sys
 from queue import Queue
 import datetime
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import importlib.util
@@ -12,7 +12,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from client_page import Ui_ClientWindow
-import admin
+import pickle
+
+timestamp = datetime.datetime.now()
 
 
 def module_from_file(module_name, file_path):
@@ -23,6 +25,7 @@ def module_from_file(module_name, file_path):
 
 
 my_server = module_from_file('my_server', '../my_server.py')
+my_client = module_from_file('my_client', '../my_client.py')
 
 engine = create_engine('sqlite:///../sqlite3.db', echo=True, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
@@ -85,7 +88,16 @@ class ClientPage(QtWidgets.QDialog):
         for i in data:
             self.ui.ContactsList.addItem(i)
 
+    def start_server(self):
+        HOST = 'localhost'
+        PORT = 7777
+        client = my_client.Client()
+        s = client.create_socket()
+        client.start_connection(HOST, PORT, s)
+        return s
+
     def send_message(self):
+        s = self.start_server()
         message = self.ui.EnterMessage.text()
         to = self.ui.ChatHedding.text()
         user = self.ui.UserLable.text()
@@ -93,6 +105,19 @@ class ClientPage(QtWidgets.QDialog):
             if to == 'ChatName':
                 self.ui.textBrowser.append('Choose chat from contact list!')
             else:
+                message_dict = {
+                    'action': 'msg',
+                    'time': timestamp,
+                    'to': to,
+                    'from': user,
+                    'encoding': 'utf-8',
+                    'message': message
+                }
+                """
+                Нижняя строка пока будет закомментирована, 
+                до реализации функционала авторизации пользователя на сервере 
+                """
+                # s.send(pickle.dumps(message_dict))
                 self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
         self.ui.EnterMessage.clear()
 
@@ -134,9 +159,6 @@ class ClientPage(QtWidgets.QDialog):
 
 
 if __name__ == '__main__':
-    # test_val = ClientContactsView('test')
-    # test_val.show_contacts()
-
     app = QtWidgets.QApplication(sys.argv)
     client_page = ClientPage()
     client_page.start_client()
