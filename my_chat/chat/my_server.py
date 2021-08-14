@@ -220,15 +220,18 @@ class ClientMessageHistory(Base):
     user_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
     recipient_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'))
     user_message = Column(Text)
+    send_time = Column(String)
     # Clients = relationship('Clients', back_populates='ClientMessageHistory')
 
-    def __init__(self, user_id, recipient_id, user_message):
+    def __init__(self, user_id, recipient_id, user_message, send_time):
         self.user_id = user_id
         self.recipient_id = recipient_id
         self.user_message = user_message
+        self.send_time = send_time
 
     def __repr__(self):
-        return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
+        return "From '%s' to '%s' ('%s'): '%s'" %\
+               (self.user_id, self.recipient_id, self.send_time , self.user_message)
 
 
 def main_db(dialect_driver='sqlite', db_name='sqlite3.db'):
