@@ -54,6 +54,101 @@ def server_log_dec(func):
     return call
 
 
+# Авторизация пользователя на сервере
+# @server_log_dec
+# def user_authenticate(my_dict, sock):
+#     logger.info('start user_authenticate!')
+#     dict_auth_response = {}
+#     user = my_dict['user']
+#     for us in users.keys():
+#         if us == user['user_name']:
+#             usernames_auth.append(us)
+#
+#     if user['user_name'] in usernames_auth and users[user['user_name']] == user['password']:
+#         dict_auth_response['response'] = 200
+#         dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
+#         print('authenticate completed!')
+#         logger.info('authenticate completed!')
+#         sock.send(pickle.dumps(dict_auth_response))
+#         return dict_auth_response
+#     else:
+#         dict_auth_response['response'] = 402
+#         dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
+#         print('error!')
+#         logger.info('error!')
+#         sock.send(pickle.dumps(dict_auth_response))
+#         return dict_auth_response
+#
+#
+# # Проверка присутствия пользователя
+# @server_log_dec
+# def presence_user(client, sock):
+#     dict_probe = {
+#         'action': 'probe',
+#         'time': timestamp
+#     }
+#
+#     sock.send(pickle.dumps(dict_probe))
+#
+#     pre_data = client.recv(1024)
+#     pre_data_load = pickle.loads(pre_data)
+#     print('Сообщение от клиента: ', pre_data_load, ', длиной ', len(pre_data), ' байт')
+#     return pre_data_load['action']
+#
+#
+# # Отправка сообщения другому пользователю
+# @server_log_dec
+# def message_send(my_dict, sock):
+#     msg_dict = {
+#         'time': timestamp
+#     }
+#     if list(my_dict['to'])[0].isalpha():
+#         for i in users_contacts:
+#             if my_dict['to'] == i:
+#                 msg_dict['response'] = 200
+#                 msg_dict['alert'] = dict_signals[msg_dict['response']]
+#                 msg_dict['message'] = my_dict['message']
+#                 msg_dict['to'] = my_dict['to']
+#                 msg_dict['from'] = my_dict['from']
+#                 print('message send!')
+#                 logger.info('message send!')
+#                 sock.send(pickle.dumps(msg_dict))
+#                 return msg_dict
+#             else:
+#                 msg_dict['response'] = 404
+#                 msg_dict['alert'] = dict_signals[msg_dict['response']]
+#                 msg_dict['message'] = my_dict['message']
+#                 msg_dict['to'] = my_dict['to']
+#                 msg_dict['from'] = my_dict['from']
+#                 logger.info('пользователь/чат отсутствует на сервере')
+#                 sock.send(pickle.dumps(msg_dict))
+#                 return msg_dict
+#
+#
+# def message_room(my_dict, sock):
+#     msg_dict = {
+#         'time': timestamp
+#     }
+#     if my_dict['to'] in room_names:
+#         msg_dict['response'] = 200
+#         msg_dict['to'] = my_dict['to']
+#         msg_dict['from'] = my_dict['from']
+#         msg_dict['message'] = my_dict['message']
+#         return msg_dict
+#     else:
+#         msg_dict['response'] = 404
+#         logger.info('пользователь/чат отсутствует на сервере')
+#         sock.send(pickle.dumps(msg_dict))
+#         return msg_dict
+#
+#
+# def message_room_send(my_dict, w):
+#     for val in w:
+#         val.send(pickle.dumps(my_dict))
+#     print('message send!')
+#     logger.info('message send!')
+
+
 def read_requests(r_clients, all_clients):
     """ Чтение запросов из списка клиентов
     """
@@ -87,7 +182,7 @@ class Clients(Base):
         self.info = info
 
     def __repr__(self):
-        return "<Client('%s', '%s')>" % (self.user_name, self.info)
+        return "'%s'" % (self.user_name)
 
 
 class ClientHistory(Base):
@@ -136,6 +231,17 @@ class ClientMessageHistory(Base):
         return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
 
 
+def main_db(dialect_driver='sqlite', db_name='sqlite3.db'):
+    # sqlite3.db
+    engine = create_engine(f'{dialect_driver}:///{db_name}', echo=True, pool_recycle=7200)
+    Session = sessionmaker(bind=engine)
+    Session.configure(bind=engine)
+    metadata.create_all(engine)
+    session = Session()
+
+    return session
+
+
 class Storage:
 
     def add_user_contacts(self, user, contact):
@@ -160,6 +266,9 @@ class Storage:
         add_message = ClientMessageHistory(id_user, id_contact, message)
         session.add(add_message)
         session.commit()
+
+
+storage = Storage()
 
 
 def find_forbidden_methods_call(func, method_names):
@@ -346,10 +455,10 @@ class Server(metaclass=ServerVerifierMeta):
         return responses
 
 
-def main():
+def main(port):
     server = Server()
     server.create_socket()
-    server.start_server()
+    server.start_server(int(port))
 
     logger.info('start connection!')
     clients = []
@@ -404,14 +513,10 @@ def main():
 
 if __name__ == '__main__':
     try:
-        engine = create_engine('sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
-        Session = sessionmaker(bind=engine)
-        Session.configure(bind=engine)
-
-        metadata.create_all(engine)
-        session = Session()
-
-        storage = Storage()
-        main()
+        # dialect_driver = 'sqlite'
+        # db_name = 'sqlite3.db'
+        session = main_db()
+        port = input("Enter port number for connection: ")
+        main(port)
     except Exception as e:
         print(e)
