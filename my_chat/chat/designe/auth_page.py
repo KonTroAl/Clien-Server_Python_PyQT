@@ -49,7 +49,7 @@ class Ui_MainWindow(object):
         self.SubmitButton = QtWidgets.QPushButton(self.centralwidget)
         self.SubmitButton.setGeometry(QtCore.QRect(105, 300, 90, 30))
         self.SubmitButton.setObjectName("SubmitButton")
-        MainWindow.setCentralWidget(self.centralwidget)
+        # MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
