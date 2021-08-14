@@ -2,8 +2,8 @@ import sys
 from queue import Queue
 import datetime
 
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal, pyqtSlot
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 
 import importlib.util
 import importlib
@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from client_page import Ui_ClientWindow
+import admin
 
 
 def module_from_file(module_name, file_path):
@@ -66,6 +67,7 @@ class ClientContactsView(QObject):
             self.res_queue.task_done()
         self.res_queue.task_done()
         self.gotData.emit(user_contacts)
+        return user_contacts
 
 
 class ClientPage(QtWidgets.QDialog):
@@ -98,8 +100,23 @@ class ClientPage(QtWidgets.QDialog):
         self.ui.ChatHedding.setText(item.text())
 
     def add_contact(self):
-        contact = self.ui.FinderContacts.text()
-        self.ui.ContactsList.addItem(contact)
+        user_name = self.ui.UserLable.text()
+        user = session.query(my_server.Clients).filter_by(user_name=user_name).first()
+        id_user = user.id
+        contact_name = self.ui.FinderContacts.text()
+        contact = session.query(my_server.Clients).filter_by(user_name=contact_name).first()
+        contact_id = contact.id
+        ContactList_items = self.ui.ContactsList
+        items = []
+        for i in range(ContactList_items.count()):
+            items.append(ContactList_items.item(i).text())
+        if id_user == contact_id or contact_name in items:
+            print('Error!')
+        else:
+            add_contact = my_server.ClientContacts(id_user, contact_id)
+            session.add(add_contact)
+            session.commit()
+            self.ui.ContactsList.addItem(contact_name)
         self.ui.FinderContacts.clear()
 
     def start_client(self):

@@ -7,7 +7,11 @@ from PyQt5 import QtWidgets
 import importlib.util
 import importlib
 
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+
 from admin_panel import Ui_MainWindow
+import client
 
 
 def module_from_file(module_name, file_path):
@@ -18,6 +22,8 @@ def module_from_file(module_name, file_path):
 
 
 my_server = module_from_file('my_server', '../my_server.py')
+
+
 
 
 class AdminDialog(QtWidgets.QDialog):
@@ -40,7 +46,10 @@ class AdminDialog(QtWidgets.QDialog):
     def start_DB(self):
         dialect = self.ui.DialectDBTextBox.text()
         name_db = self.ui.NameDBTextBox.text()
-        session = my_server.main_db(dialect, name_db)
+        engine = create_engine(f'{dialect}:///../{name_db}', echo=True, pool_recycle=7200)
+        Session = sessionmaker(bind=engine)
+        Session.configure(bind=engine)
+        session = Session()
         return session
 
     def show_clients(self, session):
@@ -51,7 +60,6 @@ class AdminDialog(QtWidgets.QDialog):
     def show_clients_statistic(self, session):
         clients = session.query(my_server.Clients).all()
         for client in clients:
-            # print(client.__dict__)
             user = session.query(my_server.Clients).filter_by(user_name=client.__dict__['user_name']).first()
             user_id = user.id
             client_history = session.query(my_server.ClientHistory).filter_by(user_id=user_id).first()
@@ -72,6 +80,8 @@ class AdminDialog(QtWidgets.QDialog):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     admin = AdminDialog()
+    # client = client.ClientPage()
     admin.show()
+    # client.show()
 
     sys.exit(app.exec_())
