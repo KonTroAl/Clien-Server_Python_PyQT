@@ -104,7 +104,7 @@ class Clients(Base):
         self.info = info
 
     def __repr__(self):
-        return "<Client('%s', '%s')>" % (self.user_name, self.info)
+        return "'%s'" % (self.user_name)
 
 
 class ClientHistory(Base):
@@ -147,17 +147,32 @@ class ClientMessageHistory(Base):
     recipient_id = Column(Integer, ForeignKey('clients.id',
                                               ondelete='CASCADE'))
     user_message = Column(Text)
+    send_time = Column(String)
 
     # Clients = relationship('Clients', back_populates='ClientMessageHistory')
 
-    def __init__(self, user_id, recipient_id, user_message):
+    def __init__(self, user_id, recipient_id, user_message, send_time):
         self.user_id = user_id
         self.recipient_id = recipient_id
         self.user_message = user_message
+        self.send_time = send_time
 
     def __repr__(self):
-        return "From '%s' to '%s': '%s'" %\
-               (self.user_id, self.recipient_id, self.user_message)
+        return "From '%s' to '%s' ('%s'): '%s'" % \
+               (self.user_id, self.recipient_id, self.send_time,
+                self.user_message)
+
+
+def main_db(dialect_driver='sqlite', db_name='sqlite3.db'):
+    # sqlite3.db
+    engine = create_engine(f'{dialect_driver}:///{db_name}',
+                           echo=False, pool_recycle=7200)
+    Session = sessionmaker(bind=engine)
+    Session.configure(bind=engine)
+    metadata.create_all(engine)
+    session = Session()
+
+    return session
 
 
 class Storage:
@@ -189,17 +204,18 @@ class Storage:
         id_contact = session.query(Clients).filter_by(
             user_name=contact
         ).first()
-        add_message = ClientMessageHistory(id_user, id_contact, message)
+        add_message = ClientMessageHistory(id_user, id_contact, message, str(timestamp))
         session.add(add_message)
         session.commit()
 
 
+storage = Storage()
 """Реализация функционала Сервера через ООП"""
 
 
 def find_forbidden_methods_call(func, method_names):
     for instr in dis.get_instructions(func):
-        if instr.opname == 'LOAD_METHOD'\
+        if instr.opname == 'LOAD_METHOD' \
                 and instr.argval in method_names:
             return instr.argval
 
@@ -238,8 +254,9 @@ class PortVerifier:
 class Server(metaclass=ServerVerifierMeta):
     port = PortVerifier()
 
-    def __init__(self):
+    def __init__(self, session):
         self.s = None
+        self.session = session
 
     def create_socket(self):
         self.s = socket(AF_INET, SOCK_STREAM)
@@ -270,8 +287,8 @@ class Server(metaclass=ServerVerifierMeta):
             'sha256', password.encode('utf-8'),
             salt.encode('utf-8'), 10000)
         add_user = Clients(user['username'], key, user['info'])
-        session.add(add_user)
-        session.commit()
+        self.session.add(add_user)
+        self.session.commit()
         q_val = session.query(Clients).all()
         print(q_val)
         dict_reg_response['response'] = 200
@@ -293,14 +310,14 @@ class Server(metaclass=ServerVerifierMeta):
                                       password_to_check.encode('utf-8'),
                                       user['user_name'].encode('utf-8'),
                                       10000)
-        user_db_obj = session.query(Clients).filter_by(
+        user_db_obj = self.session.query(Clients).filter_by(
             user_name=user['user_name']).first()
         user_db_name = user_db_obj.user_name
         user_db_password_key = user_db_obj.password
-        if user_db_name == user['user_name']\
+        if user_db_name == user['user_name'] \
                 and user_db_password_key == new_key:
             dict_auth_response['response'] = 200
-            dict_auth_response['alert'] =\
+            dict_auth_response['alert'] = \
                 dict_signals[dict_auth_response['response']]
             print('authenticate completed!')
             logger.info('authenticate completed!')
@@ -308,7 +325,7 @@ class Server(metaclass=ServerVerifierMeta):
             return dict_auth_response
         else:
             dict_auth_response['response'] = 402
-            dict_auth_response['alert'] =\
+            dict_auth_response['alert'] = \
                 dict_signals[dict_auth_response['response']]
             print('error!')
             logger.info('error!')
@@ -422,10 +439,10 @@ class Server(metaclass=ServerVerifierMeta):
 """Основная логика приложения Сервера через функцию main()"""
 
 
-def main():
-    server = Server()
+def main(port, session):
+    server = Server(session)
     server.create_socket()
-    server.start_server()
+    server.start_server(int(port))
 
     logger.info('start connection!')
     clients = []
@@ -457,10 +474,8 @@ def main():
                             auth = server.user_authenticate(
                                 requests[sock], sock)['response']
                             if auth == 402:
-                                usernames_auth.remove(
-                                    requests[sock]['user']['user_name'])
                                 break
-                            server.presence_user(sock, sock)
+                            # server.presence_user(sock, sock)
                         elif requests[sock]['action'] == 'registry':
                             server.user_registry(requests[sock], sock)
                         elif requests[sock]['action'] == 'msg':
@@ -489,17 +504,8 @@ def main():
 
 if __name__ == '__main__':
     try:
-        engine = create_engine(
-            'sqlite:///sqlite3.db', echo=True, pool_recycle=7200)
-        Session = sessionmaker(bind=engine)
-        Session.configure(bind=engine)
-
-        metadata.create_all(engine)
-        session = Session()
-
-        storage = Storage()
-        # q_val = session.query(Clients).all()
-        # print(q_val)
-        main()
+        session = main_db()
+        port = input("Enter port number for connection: ")
+        main(port, session)
     except Exception as e:
         print(e)

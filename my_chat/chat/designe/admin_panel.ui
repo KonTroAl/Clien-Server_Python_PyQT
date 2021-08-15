@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>700</height>
+    <height>550</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,16 +31,6 @@
     </property>
     <property name="styleSheet">
      <string notr="true">background-color: rgb(255, 255, 255);</string>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="PortTextBox">
-    <property name="geometry">
-     <rect>
-      <x>80</x>
-      <y>420</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
     </property>
    </widget>
    <widget class="QLabel" name="HeddingClientList">
@@ -137,8 +127,8 @@
    <widget class="QLabel" name="PortNumber">
     <property name="geometry">
      <rect>
-      <x>85</x>
-      <y>390</y>
+      <x>150</x>
+      <y>370</y>
       <width>81</width>
       <height>21</height>
      </rect>
@@ -156,8 +146,8 @@
    <widget class="QPushButton" name="PortConnectionButton">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>420</y>
+      <x>350</x>
+      <y>440</y>
       <width>100</width>
       <height>30</height>
      </rect>
@@ -198,54 +188,6 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QPushButton" name="DBConnectionButton">
-    <property name="geometry">
-     <rect>
-      <x>545</x>
-      <y>650</y>
-      <width>100</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Подключиться</string>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="ServerTextBox">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>600</y>
-      <width>350</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="ServerDB">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>570</y>
-      <width>81</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Сервер базы данных</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="DialectDB">
     <property name="geometry">
      <rect>
@@ -265,111 +207,11 @@
      <string>Имя базы данных</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="DialectDBTextBox">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>390</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="ServerDB_3">
-    <property name="geometry">
-     <rect>
-      <x>640</x>
-      <y>370</y>
-      <width>141</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Драйвер базы данных</string>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="DriverDBTextBox">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>390</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="UsernameDB">
-    <property name="geometry">
-     <rect>
-      <x>420</x>
-      <y>440</y>
-      <width>111</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Имя пользователя</string>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="PasswordDBTextBox">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>460</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="PasswordDb">
-    <property name="geometry">
-     <rect>
-      <x>640</x>
-      <y>440</y>
-      <width>111</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Пароль</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QTextEdit" name="UsernameDBTextBox">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>460</y>
-      <width>90</width>
-      <height>30</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="NameDb">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>500</y>
+      <x>600</x>
+      <y>370</y>
       <width>151</width>
       <height>21</height>
      </rect>
@@ -387,11 +229,41 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QTextEdit" name="NsmeDBTextBox">
+   <widget class="QComboBox" name="DialectDBComboBox">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>530</y>
+      <x>430</x>
+      <y>390</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>sqlite</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>mySQL</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLineEdit" name="NameDBTextBox">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>390</y>
+      <width>90</width>
+      <height>30</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="PortTextBox">
+    <property name="geometry">
+     <rect>
+      <x>145</x>
+      <y>390</y>
       <width>90</width>
       <height>30</height>
      </rect>
@@ -399,6 +271,14 @@
    </widget>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>PortTextBox</tabstop>
+  <tabstop>DialectDBComboBox</tabstop>
+  <tabstop>NameDBTextBox</tabstop>
+  <tabstop>PortConnectionButton</tabstop>
+  <tabstop>ClientsList</tabstop>
+  <tabstop>ClientsStatistic</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
