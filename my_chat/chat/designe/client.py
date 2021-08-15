@@ -1,6 +1,7 @@
 import sys
 from queue import Queue
 import datetime
+from threading import Thread
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -27,7 +28,7 @@ def module_from_file(module_name, file_path):
 my_server = module_from_file('my_server', '../my_server.py')
 my_client = module_from_file('my_client', '../my_client.py')
 
-engine = create_engine('sqlite:///../sqlite3.db', echo=True, pool_recycle=7200)
+engine = create_engine('sqlite:///../sqlite3.db', echo=False, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 
@@ -74,7 +75,7 @@ class ClientContactsView(QObject):
 
 
 class ClientPage(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, s, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
         self.ui = Ui_ClientWindow()
         self.ui.setupUi(self)
@@ -82,26 +83,26 @@ class ClientPage(QtWidgets.QDialog):
         self.ui.SearchButton.clicked.connect(self.add_contact)
 
         self.contacts_list = None
+        self.s = s
 
     @pyqtSlot(list)
     def show_client_contacts(self, data):
         for i in data:
             self.ui.ContactsList.addItem(i)
 
-    def start_server(self):
-        HOST = 'localhost'
-        PORT = 7777
-        client = my_client.Client()
-        s = client.create_socket()
-        client.start_connection(HOST, PORT, s)
-        return s
+    # def start_server(self):
+    #     HOST = 'localhost'
+    #     PORT = 7777
+    #     client = my_client.Client()
+    #     s = client.create_socket()
+    #     client.start_connection(HOST, PORT, s)
+    #     return s
 
     def send_message(self):
         """
         Без запуска приложения admin.py любая попытка отправить сообщение приведет к ошибке,
         т.к. сервер не будет запущен для обработки запроса пользователя
         """
-        s = self.start_server()
         message = self.ui.EnterMessage.text()
         to = self.ui.ChatHedding.text()
         contact = session.query(my_server.Clients).filter_by(user_name=to).first()
@@ -128,7 +129,7 @@ class ClientPage(QtWidgets.QDialog):
                 add_message = my_server.ClientMessageHistory(id_user, contact_id, str(message), str(timestamp))
                 session.add(add_message)
                 session.commit()
-                # s.send(pickle.dumps(message_dict))
+                # self.s.send(pickle.dumps(message_dict))
                 self.ui.textBrowser.append(f'{user} ({datetime.datetime.now()}): {message}')
         self.ui.EnterMessage.clear()
 
@@ -155,7 +156,8 @@ class ClientPage(QtWidgets.QDialog):
             self.ui.ContactsList.addItem(contact_name)
         self.ui.FinderContacts.clear()
 
-    def start_client(self):
+    def start_client(self, user_name):
+        self.ui.UserLable.setText(user_name)
         self.contacts_list = ClientContactsView(self.ui.UserLable.text())
         self.contacts_list.gotData.connect(self.show_client_contacts)
         self.contacts_list.show_contacts()
@@ -165,13 +167,17 @@ class ClientPage(QtWidgets.QDialog):
 
         self.ui.ContactsList.itemDoubleClicked.connect(self.choose_contact)
 
+        # msg = Thread(target=my_client.message_recv, args=(self.s,))
+        # msg.start()
+        # while True:
         self.ui.SendMessageButton.setAutoDefault(True)
         self.ui.EnterMessage.returnPressed.connect(self.ui.SendMessageButton.click)
+        # msg.join(timeout=1)
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     client_page = ClientPage()
-    client_page.start_client()
+    # client_page.start_client('test')
     client_page.show()
     sys.exit(app.exec_())

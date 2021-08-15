@@ -91,7 +91,7 @@ class Clients(Base):
         self.info = info
 
     def __repr__(self):
-        return "<Client('%s', '%s')>" % (self.user_name, self.info)
+        return "'%s'" % (self.user_name)
 
 
 class ClientHistory(Base):
@@ -133,18 +133,19 @@ class ClientMessageHistory(Base):
 
     # Clients = relationship('Clients', back_populates='ClientMessageHistory')
 
-    def __init__(self, user_id, recipient_id, user_message):
+    def __init__(self, user_id, recipient_id, user_message, send_time):
         self.user_id = user_id
         self.recipient_id = recipient_id
         self.user_message = user_message
+        self.send_time = send_time
 
     def __repr__(self):
-        return "From '%s' to '%s': '%s'" % (self.user_id, self.recipient_id, self.user_message)
+        return "From '%s' to '%s' ('%s'): '%s'" % (self.user_id, self.recipient_id, self.send_time, self.user_message)
 
 
 def main_db(dialect_driver='sqlite', db_name='sqlite3.db'):
     # sqlite3.db
-    engine = create_engine(f'{dialect_driver}:///{db_name}', echo=True, pool_recycle=7200)
+    engine = create_engine(f'{dialect_driver}:///{db_name}', echo=False, pool_recycle=7200)
     Session = sessionmaker(bind=engine)
     Session.configure(bind=engine)
     metadata.create_all(engine)
@@ -274,9 +275,7 @@ class Server(metaclass=ServerVerifierMeta):
         user_db_obj = self.session.query(Clients).filter_by(user_name=user['user_name']).first()
         user_db_name = user_db_obj.user_name
         user_db_password_key = user_db_obj.password
-        # for us in users.keys():
-        #     if us == user['user_name']:
-        #         usernames_auth.append(us)
+
         if user_db_name == user['user_name'] and user_db_password_key == new_key:
             dict_auth_response['response'] = 200
             dict_auth_response['alert'] = dict_signals[dict_auth_response['response']]
@@ -423,7 +422,7 @@ def main(port, session):
                             auth = server.user_authenticate(requests[sock], sock)['response']
                             if auth == 402:
                                 break
-                            server.presence_user(sock, sock)
+                            # server.presence_user(sock, sock)
                         elif requests[sock]['action'] == 'registry':
                             server.user_registry(requests[sock], sock)
                         elif requests[sock]['action'] == 'msg':

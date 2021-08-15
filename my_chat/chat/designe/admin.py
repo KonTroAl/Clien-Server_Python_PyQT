@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets
 
 import importlib.util
 import importlib
+import auth
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -73,13 +74,13 @@ class AdminDialog(QtWidgets.QDialog):
         self.show_clients(self.start_db)
         self.show_clients_statistic(self.start_db)
         self.start.join(timeout=1)
+        auth.show()
+
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     admin = AdminDialog()
-    # client = client.ClientPage()
+    auth = auth.AuthPage()
     admin.show()
-    # client.show()
-
     sys.exit(app.exec_())
