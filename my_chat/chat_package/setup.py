@@ -15,5 +15,5 @@ setup(name='chat_package',
       options={
           'build_exe': build_exe_options
       },
-      executables=[Executable('client.py', base=base)]
+      executables=[Executable('admin.py', base=base)]
       )
