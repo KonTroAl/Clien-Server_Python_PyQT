@@ -220,8 +220,9 @@ class PortVerifier:
 class Server(metaclass=ServerVerifierMeta):
     port = PortVerifier()
 
-    def __init__(self):
+    def __init__(self, session):
         self.s = None
+        self.session = session
 
     def create_socket(self):
         self.s = socket(AF_INET, SOCK_STREAM)
@@ -250,9 +251,9 @@ class Server(metaclass=ServerVerifierMeta):
         salt = user['username']
         key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 10000)
         add_user = Clients(user['username'], key, user['info'])
-        session.add(add_user)
-        session.commit()
-        q_val = session.query(Clients).all()
+        self.session.add(add_user)
+        self.session.commit()
+        q_val = self.session.query(Clients).all()
         print(q_val)
         dict_reg_response['response'] = 200
         dict_reg_response['alert'] = dict_signals[dict_reg_response['response']]
@@ -270,7 +271,7 @@ class Server(metaclass=ServerVerifierMeta):
         password_to_check = user['password']
         new_key = hashlib.pbkdf2_hmac('sha256', password_to_check.encode('utf-8'), user['user_name'].encode('utf-8'),
                                       10000)
-        user_db_obj = session.query(Clients).filter_by(user_name=user['user_name']).first()
+        user_db_obj = self.session.query(Clients).filter_by(user_name=user['user_name']).first()
         user_db_name = user_db_obj.user_name
         user_db_password_key = user_db_obj.password
         # for us in users.keys():
@@ -389,10 +390,10 @@ class Server(metaclass=ServerVerifierMeta):
         return responses
 
 
-def main():
-    server = Server()
+def main(port, session):
+    server = Server(session)
     server.create_socket()
-    server.start_server()
+    server.start_server(int(port))
 
     logger.info('start connection!')
     clients = []
@@ -421,7 +422,6 @@ def main():
                         if requests[sock]['action'] == 'authenticate':
                             auth = server.user_authenticate(requests[sock], sock)['response']
                             if auth == 402:
-                                usernames_auth.remove(requests[sock]['user']['user_name'])
                                 break
                             server.presence_user(sock, sock)
                         elif requests[sock]['action'] == 'registry':
@@ -449,6 +449,7 @@ def main():
 if __name__ == '__main__':
     try:
         session = main_db()
-        main()
+        port = input("Enter port number for connection: ")
+        main(port, session)
     except Exception as e:
         print(e)

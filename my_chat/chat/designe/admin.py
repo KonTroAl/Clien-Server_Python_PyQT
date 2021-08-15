@@ -33,20 +33,21 @@ class AdminDialog(QtWidgets.QDialog):
         self.start = None
         self.start_db = False
 
-    def start_server(self):
-        port = self.ui.PortTextBox.text()
-        start = my_server.main(port)
-
-        return start
-
     def start_DB(self):
         dialect = self.ui.DialectDBComboBox.currentText()
         name_db = self.ui.NameDBTextBox.text()
-        engine = create_engine(f'{dialect}:///../{name_db}', echo=True, pool_recycle=7200)
+        engine = create_engine(f'{dialect}:///../{name_db}', echo=False, pool_recycle=7200)
         Session = sessionmaker(bind=engine)
         Session.configure(bind=engine)
         session = Session()
         return session
+
+
+    def start_server(self):
+        session = self.start_DB()
+        port = self.ui.PortTextBox.text()
+        start = my_server.main(port, session)
+        return start
 
     def show_clients(self, session):
         clients = session.query(my_server.Clients).all()
@@ -62,6 +63,7 @@ class AdminDialog(QtWidgets.QDialog):
             self.ui.ClientsStatistic.append(str(client_history))
 
     def start_connection(self):
+
         self.start = Thread(target=self.start_server)
         self.start.daemon = True
         self.start.start()

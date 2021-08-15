@@ -56,62 +56,41 @@ class AuthPage(QtWidgets.QDialog):
         client.start_connection(HOST, PORT, s)
         return s
 
-    # def admin_check(self):
-    #     login = self.ui.LoginBox.text()
-    #     password = self.ui.PasswordBox.text()
-    #
-    #     if login in admin_dict.keys():
-    #         if password == admin_dict[login]:
-    #             print('hello admin!')
-    #             return True
-    #
-    #     else:
-    #         return False
-
     def auth(self):
         login = self.ui.LoginBox.text()
         password = self.ui.PasswordBox.text()
 
-        if login in admin_dict.keys():
-            if password == admin_dict[login]:
-                print('hello admin!')
-                admin.show()
-        else:
-            s = self.start_server()
-            dict_auth = {
-                'action': 'authenticate',
-                'time': datetime.datetime.now(),
-                'user': {
-                    'user_name': login,
-                    'password': password
-                }
+        s = self.start_server()
+        dict_auth = {
+            'action': 'authenticate',
+            'time': datetime.datetime.now(),
+            'user': {
+                'user_name': login,
+                'password': password
             }
-            secret_message = os.urandom(32)
-            dict_auth['secret_message'] = secret_message
-            hash = hmac.new(secret_key, secret_message, hashlib.sha256)
-            digest = hash.digest()
-            s.send(pickle.dumps(dict_auth))
-            auth_data = s.recv(1024)
-            auth_data_loads = pickle.loads(auth_data)
-            if hmac.compare_digest(digest, auth_data_loads['digest']) and auth_data_loads['response'] == 200:
-                self.ui.MainHedding.setText('Авторизация завершена! Добро Пожаловать!')
+        }
+        secret_message = os.urandom(32)
+        dict_auth['secret_message'] = secret_message
+        hash = hmac.new(secret_key, secret_message, hashlib.sha256)
+        digest = hash.digest()
+        s.send(pickle.dumps(dict_auth))
+        auth_data = s.recv(1024)
+        auth_data_loads = pickle.loads(auth_data)
+        if hmac.compare_digest(digest, auth_data_loads['digest']) and auth_data_loads['response'] == 200:
+            self.ui.MainHedding.setText('Авторизация завершена! Добро Пожаловать!')
 
-
-    # def start_app(self, admin_obj, client_obj):
-    #     if self.admin_check() == True:
-    #         admin_obj.show()
-    #     else:
-    #         self.auth()
-    #         client_obj.show()
 
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    auth = AuthPage()
-    admin = admin.AdminDialog()
-    client = client.ClientPage()
+    try:
+        app = QtWidgets.QApplication(sys.argv)
+        auth = AuthPage()
+        admin = admin.AdminDialog()
+        client = client.ClientPage()
 
-    auth.show()
+        auth.show()
+        admin.show()
 
-
-    sys.exit(app.exec_())
+        sys.exit(app.exec_())
+    except Exception as e:
+        print(e)
