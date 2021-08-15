@@ -14,16 +14,9 @@ import importlib
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
-from auth_page import Ui_MainWindow
-import admin
-import client
-
-
-def module_from_file(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+from . import auth_page
+from . import client
+from . import my_client
 
 
 admin_dict = {
@@ -32,10 +25,9 @@ admin_dict = {
 }
 
 secret_key = b'test_test'
-my_server = module_from_file('my_server', '../my_server.py')
-my_client = module_from_file('my_client', '../my_client.py')
 
-engine = create_engine('sqlite:///../sqlite3.db', echo=False, pool_recycle=7200)
+
+engine = create_engine('sqlite:///sqlite3.db', echo=False, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 
@@ -54,7 +46,7 @@ def start_server():
 class AuthPage(QtWidgets.QDialog):
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
-        self.ui = Ui_MainWindow()
+        self.ui = auth_page.Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.SubmitButton.clicked.connect(self.client_auth)
 

@@ -461,9 +461,9 @@ def main(port, session):
             r = []
             w = []
             try:
-                r, w, e = select.select(
-                    clients, clients, [])
-            except ValueError:
+                r, w, e = \
+                    select.select(clients, clients, [])
+            except:
                 pass
 
             requests = read_requests(r, clients)

@@ -1,7 +1,6 @@
 import sys
 from queue import Queue
 import datetime
-from threading import Thread
 
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
@@ -12,23 +11,14 @@ import importlib
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
-from client_page import Ui_ClientWindow
-import pickle
+from . import client_page
+from . import my_server
+
 
 timestamp = datetime.datetime.now()
 
 
-def module_from_file(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-my_server = module_from_file('my_server', '../my_server.py')
-my_client = module_from_file('my_client', '../my_client.py')
-
-engine = create_engine('sqlite:///../sqlite3.db', echo=False, pool_recycle=7200)
+engine = create_engine('sqlite:///sqlite3.db', echo=False, pool_recycle=7200)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 
@@ -77,7 +67,7 @@ class ClientContactsView(QObject):
 class ClientPage(QtWidgets.QDialog):
     def __init__(self, s, parent=None):
         QtWidgets.QDialog.__init__(self, parent)
-        self.ui = Ui_ClientWindow()
+        self.ui = client_page.Ui_ClientWindow()
         self.ui.setupUi(self)
         self.ui.SendMessageButton.clicked.connect(self.send_message)
         self.ui.SearchButton.clicked.connect(self.add_contact)

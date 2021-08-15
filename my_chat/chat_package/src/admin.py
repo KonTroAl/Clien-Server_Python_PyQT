@@ -11,16 +11,17 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from admin_panel import Ui_MainWindow
+import my_server
 
 
-def module_from_file(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-my_server = module_from_file('my_server', '../my_server.py')
+# def module_from_file(module_name, file_path):
+#     spec = importlib.util.spec_from_file_location(module_name, file_path)
+#     module = importlib.util.module_from_spec(spec)
+#     spec.loader.exec_module(module)
+#     return module
+#
+#
+# my_server = module_from_file('my_server', '../my_server.py')
 
 
 class AdminDialog(QtWidgets.QDialog):
